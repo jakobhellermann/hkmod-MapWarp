@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+- Fix respawn point marker lagging behind by a frame
+
 ## 1.2.0
 - Fix pin placement by pan/zooming map, not camera
 - Don't clamp quest markers to the screen edge when zoomed in

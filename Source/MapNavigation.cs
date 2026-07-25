@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace MapWarp.Source;
 
+// Run before GameMap.Update so a pan moves the map before MapTeleport (a GameMap.Update postfix) draws
+// respawn-point marker.
+[DefaultExecutionOrder(-100)]
 [RequireComponent(typeof(Camera))]
 public class MapNavigation : MonoBehaviour {
     private const float ZoomSpeed = 0.15f;
