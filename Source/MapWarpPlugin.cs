@@ -1,14 +1,13 @@
 using System;
-using BepInEx;
-using BepInEx.Configuration;
 using HarmonyLib;
+using MapWarp.Source.Polyfill;
 using MapWarp.Source.Toasts;
+using Modding;
 using UnityEngine;
 
 namespace MapWarp.Source;
 
-[BepInAutoPlugin("io.github.jakobhellermann.mapwarp")]
-public partial class MapWarpPlugin : BaseUnityPlugin {
+public class MapWarpPlugin : Mod, ITogglableMod {
     internal static ConfigEntry<bool> EnableTeleport = null!;
     internal static ConfigEntry<bool> ShowRoomBorders = null!;
     internal static ConfigEntry<bool> ShowFullMapInQuickmap = null!;
@@ -19,9 +18,11 @@ public partial class MapWarpPlugin : BaseUnityPlugin {
 
     private Harmony harmony = null!;
 
-    private void Awake() {
-        Log.Init(Logger);
-        Log.Info($"Plugin {Name} ({Id}) has loaded!");
+    public override void Initialize() {
+        base.Initialize();
+        
+        Logging.Init(this);
+        Logging.Info($"Plugin {Name} ({Id}) has loaded!");
 
         try {
             EnableTeleport = Config.Bind("Teleport", "Enable teleport", true,
@@ -48,11 +49,11 @@ public partial class MapWarpPlugin : BaseUnityPlugin {
             // OnEnable patches won't fire. Dispatch directly (each handler is a no-op when no map is present).
             MapLifecycle.Dispatch();
         } catch (Exception e) {
-            Log.Info($"Plugin {Name} ({Id}) failed to initialize: {e}");
+            Logging.Info($"Plugin {Name} ({Id}) failed to initialize: {e}");
         }
     }
 
-    private void OnDestroy() {
+    public void Unload() {
         // Clean up everything, in order to support hot reloading
 
         try {
@@ -65,9 +66,9 @@ public partial class MapWarpPlugin : BaseUnityPlugin {
             foreach (var c in FindObjectsByType<ToastManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 Destroy(c.gameObject);
         } catch (Exception e) {
-            Log.Info($"Plugin {Name} ({Id}) failed to clean up: {e}");
+            Logging.Info($"Plugin {Name} ({Id}) failed to clean up: {e}");
         }
 
-        Log.Info($"Plugin {Name} ({Id}) has been unloaded!");
+        Logging.Info($"Plugin {Name} ({Id}) has been unloaded!");
     }
 }

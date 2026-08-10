@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace MapWarp.Source.Toasts;
 
 // Minimal on-screen toast overlay, vendored from DevUtils (trimmed to the plain-text path MapWarp uses) so the
-// mod carries no hard dependency on DevUtils. Replace with the Silksong modding API's notifications once one
+// mod carries no hard dependency on DevUtils. Replace with the HollowKnight modding API's notifications once one
 // exists upstream. Self-hosting: Install() creates the overlay GameObject, the static Toast() queues messages,
 // the component pumps its own Update. The plugin destroys the GameObject on unload (hot reload).
 public class ToastManager : MonoBehaviour {

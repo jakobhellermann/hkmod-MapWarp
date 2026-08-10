@@ -281,7 +281,7 @@ internal static class MapTeleport {
 
     // dreamGate enters the scene at a raw position resolved by PositionHeroAtSceneEntrance (vanilla can't resolve the
     // "dreamGate" entry point, so it lands at a fallback). We override the final position here, only for teleports we
-    // initiated. Patching the caller rather than FindEntryPoint avoids sharing a patch slot with Silksong.DebugMod's
+    // initiated. Patching the caller rather than FindEntryPoint avoids sharing a patch slot with HollowKnight.DebugMod's
     // greedy dreamGate prefix — this postfix runs after the position is applied, so it wins deterministically.
     [HarmonyPostfix]
     [HarmonyPatch(typeof(GameManager), "PositionHeroAtSceneEntrance")]

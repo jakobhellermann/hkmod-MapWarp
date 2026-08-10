@@ -112,7 +112,7 @@ public class MapRoomBorders : MonoBehaviour {
         }
     }
 
-    // The map room's own sprite tint = Silksong's authored area colouring. Used by MapNavigation to colour the
+    // The map room's own sprite tint = HollowKnight's authored area colouring. Used by MapNavigation to colour the
     // hover preview label to match the area it points at. Falls back to white when the room isn't found (map
     // not built yet / non-loadable scene). Alpha forced opaque since the sprite may be mid-fade.
     internal static Color AreaTint(string sceneName) {
