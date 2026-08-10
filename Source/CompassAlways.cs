@@ -1,16 +1,31 @@
-using GlobalSettings;
-using HarmonyLib;
+using System;
+using Modding;
 
 namespace MapWarp.Source;
 
-// Act as if the Compass tool were equipped — force its IsEquipped getter, which is all that gates the
-// player position marker on the map (GameMap.PositionCompassAndCorpse).
-[HarmonyPatch]
 internal static class CompassAlways {
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(ToolItem), nameof(ToolItem.IsEquipped), MethodType.Getter)]
-    // ReSharper disable once InconsistentNaming
-    private static void IsEquipped(ToolItem __instance, ref bool __result) {
-        if (MapWarpPlugin.AlwaysCompass.Value && __instance == Gameplay.CompassTool) __result = true;
+    private static bool positioningCompass;
+
+    internal static void Install() {
+        Hooks.Add(typeof(GameMap), nameof(GameMap.PositionCompass),
+            (Action<Action<GameMap, bool>, GameMap, bool>)PositionCompass);
+        ModHooks.GetPlayerBoolHook += GetBool;
+    }
+
+    internal static void Uninstall() {
+        ModHooks.GetPlayerBoolHook -= GetBool;
+    }
+
+    private static void PositionCompass(Action<GameMap, bool> orig, GameMap self, bool posShade) {
+        positioningCompass = true;
+        try {
+            orig(self, posShade);
+        } finally {
+            positioningCompass = false;
+        }
+    }
+
+    private static bool GetBool(string name, bool orig) {
+        return (MapWarpPlugin.AlwaysCompass.Value && positioningCompass && name == "equippedCharm_2") || orig;
     }
 }

@@ -1,13 +1,14 @@
 using System;
-using HarmonyLib;
+using System.Reflection;
 using MapWarp.Source.Polyfill;
 using MapWarp.Source.Toasts;
 using Modding;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MapWarp.Source;
 
-public class MapWarpPlugin : Mod, ITogglableMod {
+public class MapWarpPlugin() : Mod("MapWarp"), ITogglableMod {
     internal static ConfigEntry<bool> EnableTeleport = null!;
     internal static ConfigEntry<bool> ShowRoomBorders = null!;
     internal static ConfigEntry<bool> ShowFullMapInQuickmap = null!;
@@ -16,13 +17,13 @@ public class MapWarpPlugin : Mod, ITogglableMod {
     internal static ConfigEntry<bool> ShowRespawnPoints = null!;
     internal static ConfigEntry<bool> AlwaysCompass = null!;
 
-    private Harmony harmony = null!;
+    public override string GetVersion() => Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
     public override void Initialize() {
         base.Initialize();
         
         Logging.Init(this);
-        Logging.Info($"Plugin {Name} ({Id}) has loaded!");
+        Logging.Info($"Plugin {Name} has loaded!");
 
         try {
             EnableTeleport = Config.Bind("Teleport", "Enable teleport", true,
@@ -41,15 +42,18 @@ public class MapWarpPlugin : Mod, ITogglableMod {
             AlwaysCompass = Config.Bind("Map", "Always show compass", false,
                 "Always show your position on the map, as if the Compass tool were equipped.");
 
-            harmony = Harmony.CreateAndPatchAll(GetType().Assembly);
-            MapReveal.PatchUnlockGate(harmony);
+            MapLifecycle.Install();
+            MapTeleport.Install();
+            MapReveal.Install();
+            CompassAlways.Install();
+            MapNavigationCursor.Install();
             ToastManager.Install();
 
             // Hot reload: the GameMap may already exist when the plugin (re)loads, so MapLifecycle's Start/
-            // OnEnable patches won't fire. Dispatch directly (each handler is a no-op when no map is present).
+            // OnEnable hooks won't fire. Dispatch directly (each handler is a no-op when no map is present).
             MapLifecycle.Dispatch();
         } catch (Exception e) {
-            Logging.Info($"Plugin {Name} ({Id}) failed to initialize: {e}");
+            Logging.Info($"Plugin {Name} failed to initialize: {e}");
         }
     }
 
@@ -57,18 +61,20 @@ public class MapWarpPlugin : Mod, ITogglableMod {
         // Clean up everything, in order to support hot reloading
 
         try {
-            harmony.UnpatchSelf();
+            Hooks.UninstallAll();
+            MapReveal.Uninstall();
+            CompassAlways.Uninstall();
 
-            foreach (var c in FindObjectsByType<MapRoomBorders>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                Destroy(c);
-            foreach (var c in FindObjectsByType<MapNavigation>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                Destroy(c);
-            foreach (var c in FindObjectsByType<ToastManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                Destroy(c.gameObject);
+            foreach (var c in Object.FindObjectsByType<MapRoomBorders>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                Object.Destroy(c);
+            foreach (var c in Object.FindObjectsByType<MapNavigation>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                Object.Destroy(c);
+            foreach (var c in Object.FindObjectsByType<ToastManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                Object.Destroy(c.gameObject);
         } catch (Exception e) {
-            Logging.Info($"Plugin {Name} ({Id}) failed to clean up: {e}");
+            Logging.Info($"Plugin {Name} failed to clean up: {e}");
         }
 
-        Logging.Info($"Plugin {Name} ({Id}) has been unloaded!");
+        Logging.Info($"Plugin {Name} has been unloaded!");
     }
 }

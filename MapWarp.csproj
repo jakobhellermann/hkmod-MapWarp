@@ -12,6 +12,8 @@
         <!-- Ignore warning about processor architecture mismatch with PlayMaker ConditionalExpression -->
         <NoWarn>$(NoWarn);MSB3270</NoWarn>
 
+        <!-- TODO: only needed to get 0Harmony.dll next to the mod. Drop once we move to MonoMod. -->
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <RestorePackagesWithLockFile>True</RestorePackagesWithLockFile>
         <RestoreLockedMode Condition="'$(CI)' == 'true'">True</RestoreLockedMode>
 
@@ -19,7 +21,6 @@
         <PathMap Condition="'$(Configuration)' == 'Release'">$(MSBuildProjectDirectory)=/</PathMap>
 
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageIcon>icon.png</PackageIcon>
         <RepositoryUrl>https://github.com/jakobhellermann/silksongmod-MapWarp</RepositoryUrl>
     </PropertyGroup>
 
@@ -63,7 +64,6 @@
         <None Include="README.md" Pack="True" PackagePath="README.md"/>
         <!-- Offline-generated map data for every room (tools/extract_respawns.sh). -->
         <EmbeddedResource Include="data/mapwarp_respawns.json"/>
-        <EmbeddedResource Include="data/mapwarp_scene_sizes.json"/>
     </ItemGroup>
 
     <Target Name="CopyMod" AfterTargets="PostBuildEvent">

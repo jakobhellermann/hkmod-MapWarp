@@ -1,17 +1,38 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MapWarp.Source;
 
 internal static class MapUtil {
-    // Activate each given GameMapScene and its ancestor chain up to the GameMap root, so rooms the game left
-    // inactive (unexplored / locked zones) still render. Takes an already-fetched array (the caller caches it)
-    // so this stays allocation-free on per-frame paths — GetComponentsInChildren would allocate every call.
-    internal static void ActivateAllRooms(GameMapScene[] scenes, Transform root) {
-        foreach (var scene in scenes) {
-            var t = scene.transform;
-            while (t != null && t != root) {
-                if (!t.gameObject.activeSelf) t.gameObject.SetActive(true);
-                t = t.parent;
+    // OnGUI works in physical pixels, so fixed font sizes shrink on high-resolution screens. Scale everything
+    // against the resolution the sizes were picked at.
+    private const float ReferenceHeight = 1200f;
+
+    internal static float GuiScale => Screen.height / ReferenceHeight;
+
+    internal static GameObject[] Areas(GameMap map) => [
+        map.areaAncientBasin, map.areaCity, map.areaCliffs, map.areaCrossroads, map.areaCrystalPeak,
+        map.areaDeepnest, map.areaFogCanyon, map.areaFungalWastes, map.areaGreenpath, map.areaKingdomsEdge,
+        map.areaQueensGardens, map.areaRestingGrounds, map.areaDirtmouth, map.areaWaterways
+    ];
+
+    // The GameMap object itself stays active while no map is shown; the game toggles the area objects
+    // (WorldMap / QuickMap* activate them, CloseQuickMap deactivates all).
+    internal static bool AnyAreaActive(GameMap map) {
+        foreach (var area in Areas(map))
+            if (area.activeInHierarchy)
+                return true;
+        return false;
+    }
+
+    // Map rooms are the direct children of the area objects, named after their scene (see GameMap.PositionCompass).
+    internal static IEnumerable<(string name, SpriteRenderer sr)> Rooms(GameMap map, bool includeInactive) {
+        foreach (var area in Areas(map)) {
+            if (!includeInactive && !area.activeInHierarchy) continue;
+            foreach (Transform room in area.transform) {
+                if (!includeInactive && !room.gameObject.activeInHierarchy) continue;
+                var sr = room.GetComponent<SpriteRenderer>();
+                if (sr != null) yield return (room.name, sr);
             }
         }
     }
@@ -40,6 +61,13 @@ internal static class MapUtil {
     // cam.WorldToScreenPoint would return render-texture pixels — wrong under letterboxing / render scale.
     internal static Vector2 WorldToScreen(Camera cam, Vector3 world) =>
         ViewportToScreen(cam, cam.WorldToViewportPoint(world));
+
+    // World point in GL.LoadOrtho space (0..1 across the whole screen), letterbox-corrected. GL.LoadOrtho maps
+    // the full screen, while cam.WorldToViewportPoint is relative to the camera's own (narrower) rect.
+    internal static Vector2 WorldToOrtho(Camera cam, Vector3 world) {
+        var s = WorldToScreen(cam, world);
+        return new Vector2(s.x / Screen.width, s.y / Screen.height);
+    }
 
     // World point to OnGUI coordinates (top-left origin), letterbox-corrected.
     internal static Vector2 WorldToGui(Camera cam, Vector3 world) {

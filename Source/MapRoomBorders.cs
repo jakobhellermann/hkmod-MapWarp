@@ -12,11 +12,14 @@ public class MapRoomBorders : MonoBehaviour {
 
     private GameMap? gameMap;
     private Material mat = null!;
-    private (GameMapScene scene, SpriteRenderer sr)[]? scenes;
+    private (string name, SpriteRenderer sr)[]? scenes;
 
     // A fixed, generously-sized rect for each room label — see OnGUI for why we don't fit it with CalcSize.
     private const float LabelWidth = 220f;
     private const float LabelHeight = 22f;
+
+    private GUIStyle? labelStyle;
+    private float labelStyleScale;
 
     private void Awake() {
         cam = GetComponent<Camera>();
@@ -29,14 +32,10 @@ public class MapRoomBorders : MonoBehaviour {
         gameMap = FindFirstObjectByType<GameMap>();
         if (gameMap == null) return;
 
-        var raw = gameMap.GetComponentsInChildren<GameMapScene>(true);
-        var list = new List<(GameMapScene, SpriteRenderer)>(raw.Length);
-        foreach (var s in raw) {
-            var sr = s.GetComponent<SpriteRenderer>();
-            // Skip pure map segments (e.g. Bonetown_top_right) so the overlay shows one box/name per real
-            // scene, matching what's actually teleportable.
-            if (sr != null && MapTeleport.IsLoadableScene(s.Name)) list.Add((s, sr));
-        }
+        var list = new List<(string, SpriteRenderer)>();
+        foreach (var (name, sr) in MapUtil.Rooms(gameMap, true))
+            if (MapTeleport.IsLoadableScene(name))
+                list.Add((name, sr));
 
         scenes = list.ToArray();
         active = this;
@@ -50,30 +49,34 @@ public class MapRoomBorders : MonoBehaviour {
     private void OnGUI() {
         try {
             if (!MapWarpPlugin.ShowRoomBorders.Value) return;
-            if (!cam || !cam.enabled || !cam.gameObject.activeInHierarchy) return;
             if (scenes == null) return;
 
-            // Only label rooms when zoomed in at least to the default view; hide the clutter when zoomed out.
-            if (cam.orthographicSize > MapNavigation.DefaultOrthoSize) return;
+            var scale = MapUtil.GuiScale;
+            if (labelStyle == null || !Mathf.Approximately(labelStyleScale, scale)) {
+                labelStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(12 * scale) };
+                labelStyleScale = scale;
+            }
 
-            foreach (var (scene, sr) in scenes) {
+            // Only label rooms when zoomed in at least to the default view; hide the clutter when zoomed out.
+            if (MapTeleport.Current is { } m && m.transform.localScale.x < MapNavigation.DefaultMapScale) return;
+
+            foreach (var (name, sr) in scenes) {
                 // Only rooms the map is actually showing — with "full map in quickmap" off the game leaves other
                 // zones' rooms inactive, so this keeps the overlay in sync instead of boxing every room.
                 if (!sr.gameObject.activeInHierarchy) continue;
-                // Draw the label whenever the box overlaps the viewport (same test as the box in OnPostRender),
+                // Draw the label whenever the box overlaps the screen (same test as the box in OnPostRender),
                 // not only when the room center is on-screen — otherwise labels pop in/out while panning.
-                var min = cam.WorldToViewportPoint(sr.bounds.min);
-                var max = cam.WorldToViewportPoint(sr.bounds.max);
-                if (max.x < 0 || min.x > 1 || max.y < 0 || min.y > 1) continue;
+                if (!OnScreen(sr.bounds)) continue;
                 // Label at the room's top-left corner, letterbox-corrected (see MapUtil.WorldToGui). GUI.Label
                 // clips to its rect and CalcSize under-measures the width by ~1px — enough to cut a trailing wide
                 // glyph (the 'b' of "Tut_01b" rendered as "Tut_01"). So skip the tight fit and hand it a
                 // generously wide rect; the unused space is invisible. Pinned on-screen so it stays while panning.
                 var guiPos = MapUtil.WorldToGui(cam,
                     new Vector3(sr.bounds.min.x, sr.bounds.max.y, sr.bounds.center.z));
-                var x = Mathf.Clamp(guiPos.x, 0f, Screen.width - LabelWidth);
-                var y = Mathf.Clamp(guiPos.y, 0f, Screen.height - LabelHeight);
-                GUI.Label(new Rect(x, y, LabelWidth, LabelHeight), scene.name);
+                float w = LabelWidth * scale, h = LabelHeight * scale;
+                var x = Mathf.Clamp(guiPos.x, 0f, Screen.width - w);
+                var y = Mathf.Clamp(guiPos.y, 0f, Screen.height - h);
+                GUI.Label(new Rect(x, y, w, h), name, labelStyle);
             }
         } catch (Exception e) {
             Logging.Error(e);
@@ -82,7 +85,6 @@ public class MapRoomBorders : MonoBehaviour {
 
     private void OnPostRender() {
         if (!MapWarpPlugin.ShowRoomBorders.Value) return;
-        if (!cam || !mat) return;
         if (scenes == null || scenes.Length == 0) return;
 
         GL.PushMatrix();
@@ -92,13 +94,12 @@ public class MapRoomBorders : MonoBehaviour {
             GL.LoadOrtho();
             GL.Begin(GL.LINES);
             try {
-                foreach (var (scene, sr) in scenes) {
+                foreach (var (name, sr) in scenes) {
                     if (!sr.gameObject.activeInHierarchy) continue;
-                    var b = sr.bounds;
-                    var min = cam.WorldToViewportPoint(b.min);
-                    var max = cam.WorldToViewportPoint(b.max);
-                    if (max.x < 0 || min.x > 1 || max.y < 0 || min.y > 1) continue;
-                    var hue = Mathf.Abs(scene.name.GetHashCode()) % 1000 / 1000f;
+                    if (!OnScreen(sr.bounds)) continue;
+                    var min = MapUtil.WorldToOrtho(cam, sr.bounds.min);
+                    var max = MapUtil.WorldToOrtho(cam, sr.bounds.max);
+                    var hue = Mathf.Abs(name.GetHashCode()) % 1000 / 1000f;
                     GL.Color(Color.HSVToRGB(hue, 0.6f, 1f) with { a = 0.8f });
                     DrawRect(min.x, min.y, max.x, max.y);
                 }
@@ -117,10 +118,16 @@ public class MapRoomBorders : MonoBehaviour {
     // not built yet / non-loadable scene). Alpha forced opaque since the sprite may be mid-fade.
     internal static Color AreaTint(string sceneName) {
         if (active != null && active.scenes != null)
-            foreach (var (scene, sr) in active.scenes)
-                if (scene.name == sceneName)
+            foreach (var (name, sr) in active.scenes)
+                if (name == sceneName)
                     return sr.color with { a = 1f };
         return Color.white;
+    }
+
+    private bool OnScreen(Bounds b) {
+        var min = MapUtil.WorldToOrtho(cam, b.min);
+        var max = MapUtil.WorldToOrtho(cam, b.max);
+        return max.x >= 0 && min.x <= 1 && max.y >= 0 && min.y <= 1;
     }
 
     private static void DrawRect(float x0, float y0, float x1, float y1) {
@@ -137,9 +144,9 @@ public class MapRoomBorders : MonoBehaviour {
     public static void Install() {
         foreach (var old in FindObjectsByType<MapRoomBorders>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             Destroy(old);
-        var camGo = GameObject.Find("Map Camera");
-        if (camGo == null) return;
-        camGo.AddComponent<MapRoomBorders>();
+        var cam = GameCameras.instance != null ? GameCameras.instance.hudCamera : null;
+        if (cam == null) return;
+        cam.gameObject.AddComponent<MapRoomBorders>();
         MapNavigation.Install();
     }
 }
