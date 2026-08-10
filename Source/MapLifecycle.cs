@@ -35,7 +35,7 @@ internal static class MapLifecycle {
         try {
             handler();
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 }

@@ -1,14 +1,14 @@
-using BepInEx.Logging;
 using JetBrains.Annotations;
+using Modding;
 
 namespace MapWarp.Source;
 
 [PublicAPI]
-internal static class Log {
-    private static ManualLogSource? logSource;
+internal static class Logging {
+    private static ILogger? logSource;
 
-    internal static void Init(ManualLogSource logSource) {
-        Log.logSource = logSource;
+    internal static void Init(ILogger logSource) {
+        Logging.logSource = logSource;
     }
 
     internal static void Debug(object data) {
@@ -20,18 +20,18 @@ internal static class Log {
     }
 
     internal static void Fatal(object data) {
-        logSource?.LogFatal(data);
+        logSource?.LogError(data);
     }
 
     internal static void Info(object data) {
-        logSource?.LogInfo(data);
+        logSource?.Log(data);
     }
 
     internal static void Message(object data) {
-        logSource?.LogMessage(data);
+        logSource?.Log(data);
     }
 
     internal static void Warning(object data) {
-        logSource?.LogWarning(data);
+        logSource?.LogWarn(data);
     }
 }

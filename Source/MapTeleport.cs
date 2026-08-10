@@ -79,7 +79,7 @@ internal static class MapTeleport {
             HandleMap(__instance);
         } catch (Exception e) {
             ClearPreview();
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 

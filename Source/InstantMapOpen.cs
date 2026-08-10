@@ -43,7 +43,7 @@ internal static class InstantMapOpen {
                 fade.Value = instant ? 0f : origFade;
             }
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 

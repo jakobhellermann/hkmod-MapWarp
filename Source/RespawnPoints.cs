@@ -24,10 +24,10 @@ internal static class RespawnPoints {
             if (stream == null) return new Dictionary<string, List<Vector2>>();
             using var reader = new StreamReader(stream);
             var parsed = Parse(reader.ReadToEnd());
-            Log.Info($"Respawn points: {parsed.Count} embedded scenes");
+            Logging.Info($"Respawn points: {parsed.Count} embedded scenes");
             return parsed;
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
             return new Dictionary<string, List<Vector2>>();
         }
     }

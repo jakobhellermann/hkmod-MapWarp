@@ -65,7 +65,7 @@ public class MapNavigation : MonoBehaviour {
             HandleZoom(pannable);
             AnchorZoomToCursor(pannable);
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 
@@ -103,7 +103,7 @@ public class MapNavigation : MonoBehaviour {
             GUI.color = prev;
             GUI.Label(rect, content, previewStyle);
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 

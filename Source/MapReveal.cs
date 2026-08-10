@@ -57,7 +57,7 @@ internal static class MapReveal {
                 scene.SetMapped();
             }
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 

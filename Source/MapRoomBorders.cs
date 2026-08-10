@@ -76,7 +76,7 @@ public class MapRoomBorders : MonoBehaviour {
                 GUI.Label(new Rect(x, y, LabelWidth, LabelHeight), scene.name);
             }
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 
@@ -103,7 +103,7 @@ public class MapRoomBorders : MonoBehaviour {
                     DrawRect(min.x, min.y, max.x, max.y);
                 }
             } catch (Exception e) {
-                Log.Error(e);
+                Logging.Error(e);
             } finally {
                 GL.End();
             }

@@ -30,10 +30,10 @@ internal static class SceneSizes {
                 foreach (var (scene, wh) in raw)
                     if (wh.Length >= 2)
                         result[scene] = new Vector2(wh[0], wh[1]);
-            Log.Info($"Scene sizes: {result.Count} embedded scenes");
+            Logging.Info($"Scene sizes: {result.Count} embedded scenes");
             return result;
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
             return new Dictionary<string, Vector2>();
         }
     }

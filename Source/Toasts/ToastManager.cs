@@ -38,7 +38,7 @@ public class ToastManager : MonoBehaviour {
     [PublicAPI]
     public static void Toast(object? message) {
         var text = message?.ToString() ?? "null";
-        Log.Info($"Toast: {text}");
+        Logging.Info($"Toast: {text}");
         instance?.AddToastMessage(text);
     }
 
@@ -84,7 +84,7 @@ public class ToastManager : MonoBehaviour {
                 toastsDirty = false;
             }
         } catch (Exception e) {
-            Log.Error(e);
+            Logging.Error(e);
         }
     }
 
