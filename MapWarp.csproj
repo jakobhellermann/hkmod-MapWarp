@@ -30,12 +30,15 @@
                 Version="6000.0.50"
                 IncludeAssets="compile"
                 ExcludeAssets="$(ExcludeAssetsIfLocalReference)"
+                Condition="!Exists('$(ManagedDir)')"
         />
+        <!-- TODO: remove condition when gamelibs is created -->
         <PackageReference
                 Include="HollowKnight.GameLibs"
                 Version="*-*"
                 PrivateAssets="all"
                 ExcludeAssets="$(ExcludeAssetsIfLocalReference)"
+                Condition="!Exists('$(ManagedDir)')"
         />
     </ItemGroup>
 
@@ -48,7 +51,7 @@
     <ItemGroup Condition="Exists('$(ManagedDir)')">
         <LocalReferences
                 Include="$(ManagedDir)/*.dll"
-                Exclude="$(ManagedDir)/Mono*.dll;$(ManagedDir)/netstandard.dll;$(ManagedDir)/System*.dll;$(ManagedDir)/mscorlib.dll"
+                Exclude="$(ManagedDir)/Mono*.dll;$(ManagedDir)/netstandard.dll;$(ManagedDir)/System*.dll;$(ManagedDir)/mscorlib.dll;$(ManagedDir)/Silksong.*.dll"
         />
         <Reference Include="@(LocalReferences)" Private="false"/>
         <!-- TODO: fix 4.0.3.0 mapi 4.0.2.0 netstandard2.1 ambiguity -->
