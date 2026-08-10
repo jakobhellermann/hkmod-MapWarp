@@ -92,7 +92,7 @@ public class MapNavigation : MonoBehaviour {
     // where room boxes overlap you see all of their spots, not just the selected room's. Points are stored
     // normalized [0,1] within a scene; each room's own map-sprite bounds map normalized -> world -> screen.
     private void DrawRespawnPoints() {
-        if (!MapWarpPlugin.ShowRespawnPoints.Value) return;
+        if (!MapWarpPlugin.Settings.ShowRespawnPoints) return;
 
         var s = 12f * MapUtil.GuiScale;
         var prev = GUI.color;

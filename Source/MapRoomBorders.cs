@@ -48,7 +48,7 @@ public class MapRoomBorders : MonoBehaviour {
 
     private void OnGUI() {
         try {
-            if (!MapWarpPlugin.ShowRoomBorders.Value) return;
+            if (!MapWarpPlugin.Settings.ShowRoomBorders) return;
             if (scenes == null) return;
 
             var scale = MapUtil.GuiScale;
@@ -84,7 +84,7 @@ public class MapRoomBorders : MonoBehaviour {
     }
 
     private void OnPostRender() {
-        if (!MapWarpPlugin.ShowRoomBorders.Value) return;
+        if (!MapWarpPlugin.Settings.ShowRoomBorders) return;
         if (scenes == null || scenes.Length == 0) return;
 
         GL.PushMatrix();

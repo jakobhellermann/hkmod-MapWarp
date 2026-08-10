@@ -26,7 +26,7 @@ internal static class InstantMapOpen {
             captured = true;
         }
 
-        wait.Value = MapWarpPlugin.InstantMapOpen.Value ? 0f : origWait;
+        wait.Value = MapWarpPlugin.Settings.InstantMapOpen ? 0f : origWait;
     }
 
     private static T FindAction<T>(PlayMakerFSM fsm, string stateName) where T : FsmStateAction =>

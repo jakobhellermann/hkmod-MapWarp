@@ -79,7 +79,7 @@ internal static class MapTeleport {
     }
 
     private static void HandleMap(GameMap gameMap) {
-        if (!MapWarpPlugin.EnableTeleport.Value) {
+        if (!MapWarpPlugin.Settings.EnableTeleport) {
             ClearPreview();
             return;
         }

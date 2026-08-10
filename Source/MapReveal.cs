@@ -5,7 +5,7 @@ using UnityEngine;
 namespace MapWarp.Source;
 
 internal static class MapReveal {
-    private static bool Enabled => MapWarpPlugin.UnlockEntireMap.Value;
+    private static bool Enabled => MapWarpPlugin.Settings.UnlockEntireMap;
 
     private static readonly string[] UnlockBools = [
         "hasMap", "hasQuill", "mapAllRooms",
@@ -45,7 +45,7 @@ internal static class MapReveal {
         try {
             if (Enabled) self.SetupMap();
 
-            if (!MapWarpPlugin.ShowFullMapInQuickmap.Value) return;
+            if (!MapWarpPlugin.Settings.ShowFullMapInQuickmap) return;
 
             self.displayNextArea = false;
             foreach (var area in MapUtil.Areas(self))

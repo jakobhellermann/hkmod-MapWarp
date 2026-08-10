@@ -26,6 +26,6 @@ internal static class CompassAlways {
     }
 
     private static bool GetBool(string name, bool orig) {
-        return (MapWarpPlugin.AlwaysCompass.Value && positioningCompass && name == "equippedCharm_2") || orig;
+        return (MapWarpPlugin.Settings.AlwaysCompass && positioningCompass && name == "equippedCharm_2") || orig;
     }
 }
