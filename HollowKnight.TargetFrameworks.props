@@ -1,0 +1,59 @@
+<Project>
+    <!--
+    Generate one assembly per game version.
+        alias      game version    framework
+        hk1221     1.2.2.1         net35
+        hk1432     1.4.3.2         net35
+        hk1578     1.5.78.11833    net472
+        hk1512620  1.5.12620       netstandard2.1
+    -->
+
+    <PropertyGroup>
+        <GameLibsPackageVersion Condition="'$(GameLibsPackageVersion)' == ''">1.2.0</GameLibsPackageVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'hk1221'">
+        <HollowKnightVersion>1.2.2.1</HollowKnightVersion>
+        <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+        <ModsLayout>flat</ModsLayout>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'hk1432'">
+        <HollowKnightVersion>1.4.3.2</HollowKnightVersion>
+        <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+        <!-- v74 backport loads subdirectories; the v60 API does not -->
+        <ModsLayout>subdirectory</ModsLayout>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'hk1578'">
+        <HollowKnightVersion>1.5.78.11833</HollowKnightVersion>
+        <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <ModsLayout>subdirectory</ModsLayout>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'hk1512620'">
+        <HollowKnightVersion>1.5.12620</HollowKnightVersion>
+        <TargetFrameworkIdentifier>.NETStandard</TargetFrameworkIdentifier>
+        <TargetFrameworkVersion>v2.1</TargetFrameworkVersion>
+        <ModsLayout>subdirectory</ModsLayout>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(HollowKnightVersion)' != ''">
+        <TargetFrameworkMoniker>$(TargetFrameworkIdentifier),Version=$(TargetFrameworkVersion)</TargetFrameworkMoniker>
+        <!-- define constant like HK1221 -->
+        <DefineConstants>$(DefineConstants);$(TargetFramework.ToUpper())</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(HollowKnightVersion)' != ''">
+        <!--
+        NU1601: aliases sharing an effective framework collapse into one dependency group, while the restore graph
+        itself stays per alias.
+        -->
+        <PackageReference Include="HollowKnight.GameLibs"
+                          Version="[$(GameLibsPackageVersion)-hollowKnight$(HollowKnightVersion)]"
+                          PrivateAssets="all"
+                          NoWarn="NU1601"
+                          ExcludeAssets="$(ExcludeAssetsIfLocalReference)"/>
+    </ItemGroup>
+
+</Project>

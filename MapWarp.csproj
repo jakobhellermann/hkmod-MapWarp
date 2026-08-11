@@ -3,8 +3,11 @@
     Imports hollow knight path properties only if present in order to allow CI builds. The file should be gitignored.
     -->
     <Import Condition="Exists('HollowKnightPath.props')" Project="HollowKnightPath.props"/>
+    <Import Project="HollowKnight.TargetFrameworks.props"/>
+
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
+        <!-- One assembly per game version; see HollowKnight.TargetFrameworks.props -->
+        <TargetFrameworks>hk15126;hk15781</TargetFrameworks>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <EnableNETAnalyzers>True</EnableNETAnalyzers>
@@ -26,21 +29,6 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.27.0" PrivateAssets="all"/>
-        <PackageReference
-                Include="UnityEngine.Modules"
-                Version="6000.0.50"
-                IncludeAssets="compile"
-                ExcludeAssets="$(ExcludeAssetsIfLocalReference)"
-                Condition="!Exists('$(ManagedDir)')"
-        />
-        <!-- TODO: remove condition when gamelibs is created -->
-        <PackageReference
-                Include="HollowKnight.GameLibs"
-                Version="*-*"
-                PrivateAssets="all"
-                ExcludeAssets="$(ExcludeAssetsIfLocalReference)"
-                Condition="!Exists('$(ManagedDir)')"
-        />
     </ItemGroup>
 
     <PropertyGroup Condition="Exists('$(ManagedDir)')">
@@ -66,16 +54,12 @@
         <EmbeddedResource Include="data/mapwarp_respawns.json"/>
     </ItemGroup>
 
-    <Target Name="CopyMod" AfterTargets="PostBuildEvent">
-        <ItemGroup>
-            <Binaries Include="$(TargetPath)"/>
-            <Binaries Include="$(TargetDir)/$(TargetName).pdb"/>
-        </ItemGroup>
-
-        <Copy
-                SourceFiles="@(Binaries)"
-                DestinationFolder="$(ModsDir)/$(AssemblyTitle)"
-                Condition="'$(ModsDir)' != '' And Exists('$(ModsDir)')"
-        />
+    <Target Name="CopyMod" AfterTargets="PostBuildEvent" Condition="'$(ModsDir)' != '' And Exists('$(ModsDir)')">
+        <PropertyGroup>
+            <ModInstallDir Condition="'$(ModsLayout)' == 'flat'">$(ModsDir)</ModInstallDir>
+            <ModInstallDir Condition="'$(ModsLayout)' == 'subdirectory'">$(ModsDir)/$(AssemblyTitle)</ModInstallDir>
+        </PropertyGroup>
+        <Error Condition="'$(ModInstallDir)' == ''" Text="No Mods layout known for $(TargetFramework)."/>
+        <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb" DestinationFolder="$(ModInstallDir)"/>
     </Target>
 </Project>
