@@ -49,13 +49,14 @@
         <Error Condition="'$(ManagedDir)' != '' And !Exists('$(ManagedDir)')" Text="ManagedDir '$(ManagedDir)' does not exist."/>
     </Target>
     <ItemGroup Condition="Exists('$(ManagedDir)')">
+        <LocalReferences Include="Assembly-CSharp;PlayMaker;Newtonsoft.Json;TeamCherry.TK2D"/>
+        <LocalReferences Include="MonoMod.RuntimeDetour;MonoMod.Utils;MonoMod.Backports;Mono.Cecil"/>
         <LocalReferences
-                Include="$(ManagedDir)/*.dll"
-                Exclude="$(ManagedDir)/Mono*.dll;$(ManagedDir)/netstandard.dll;$(ManagedDir)/System*.dll;$(ManagedDir)/mscorlib.dll;$(ManagedDir)/Silksong.*.dll"
+                Include="UnityEngine;UnityEngine.CoreModule;UnityEngine.IMGUIModule;UnityEngine.InputLegacyModule;UnityEngine.Physics2DModule;UnityEngine.TextRenderingModule;UnityEngine.UI;UnityEngine.UIModule"
         />
-        <Reference Include="@(LocalReferences)" Private="false"/>
-        <!-- TODO: fix 4.0.3.0 mapi 4.0.2.0 netstandard2.1 ambiguity -->
-        <Reference Include="$(ManagedDir)/System.ValueTuple.dll" Private="false"/>
+        <!-- The game ships 4.0.3.0, the netstandard2.1 reference pack 4.0.2.0; without this MSB3277 fires. -->
+        <LocalReferences Include="System.ValueTuple"/>
+        <Reference Include="@(LocalReferences->'$(ManagedDir)/%(Identity).dll')" Private="false"/>
     </ItemGroup>
 
     <ItemGroup>
