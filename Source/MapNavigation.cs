@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 
+using MapWarp.Source.Compat;
+
 namespace MapWarp.Source;
 
 // Run before GameMap.Update so a pan moves the map before MapTeleport's hook draws the respawn-point markers.
@@ -182,7 +184,7 @@ public class MapNavigation : MonoBehaviour {
     }
 
     public static void Install() {
-        foreach (var old in FindObjectsByType<MapNavigation>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var old in UnityCompat.FindAll<MapNavigation>(includeInactive: true))
             Destroy(old);
         var cam = GameCameras.instance != null ? GameCameras.instance.hudCamera : null;
         if (cam == null) return;

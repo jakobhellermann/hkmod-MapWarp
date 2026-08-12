@@ -6,6 +6,8 @@ using Modding;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+using MapWarp.Source.Compat;
+
 namespace MapWarp.Source;
 
 public class MapWarpPlugin() : Mod("MapWarp"), ITogglableMod, IGlobalSettings<Settings>, IMenuMod {
@@ -66,11 +68,11 @@ public class MapWarpPlugin() : Mod("MapWarp"), ITogglableMod, IGlobalSettings<Se
         MapReveal.Uninstall();
         CompassAlways.Uninstall();
 
-        foreach (var c in Object.FindObjectsByType<MapRoomBorders>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var c in UnityCompat.FindAll<MapRoomBorders>(includeInactive: true))
             Object.Destroy(c);
-        foreach (var c in Object.FindObjectsByType<MapNavigation>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var c in UnityCompat.FindAll<MapNavigation>(includeInactive: true))
             Object.Destroy(c);
-        foreach (var c in Object.FindObjectsByType<ToastManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var c in UnityCompat.FindAll<ToastManager>(includeInactive: true))
             Object.Destroy(c.gameObject);
 
         Logging.Info($"Plugin {Name} has been unloaded!");

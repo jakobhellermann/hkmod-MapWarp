@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+using MapWarp.Source.Compat;
+
 namespace MapWarp.Source;
 
 [RequireComponent(typeof(Camera))]
@@ -29,7 +31,7 @@ public class MapRoomBorders : MonoBehaviour {
     }
 
     private void OnEnable() {
-        gameMap = FindFirstObjectByType<GameMap>();
+        gameMap = UnityCompat.FindFirst<GameMap>();
         if (gameMap == null) return;
 
         var list = new List<(string, SpriteRenderer)>();
@@ -142,7 +144,7 @@ public class MapRoomBorders : MonoBehaviour {
     }
 
     public static void Install() {
-        foreach (var old in FindObjectsByType<MapRoomBorders>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var old in UnityCompat.FindAll<MapRoomBorders>(includeInactive: true))
             Destroy(old);
         var cam = GameCameras.instance != null ? GameCameras.instance.hudCamera : null;
         if (cam == null) return;

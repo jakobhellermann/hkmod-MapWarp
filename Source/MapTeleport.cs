@@ -7,6 +7,8 @@ using System.IO;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+using MapWarp.Source.Compat;
+
 namespace MapWarp.Source;
 
 internal static class MapTeleport {
@@ -176,7 +178,7 @@ internal static class MapTeleport {
         // A same-scene teleport leaves the bench's own FSM sitting in Resting / Map Idle, and closing the quick
         // map afterwards walks it back into Resting, which re-sets atBench. Park it in the state Get Off would
         // have reached: Reactivate restores the bench particles and falls through to Idle.
-        foreach (var fsm in Object.FindObjectsByType<PlayMakerFSM>(FindObjectsSortMode.None))
+        foreach (var fsm in UnityCompat.FindAll<PlayMakerFSM>())
             if (fsm.FsmName == "Bench Control" && fsm.ActiveStateName != "Idle")
                 fsm.SetState("Reactivate");
     }
@@ -340,12 +342,12 @@ internal static class MapTeleport {
         safeSpot = Vector3.zero;
         var found = false;
 
-        foreach (var m in Object.FindObjectsByType<HazardRespawnMarker>(FindObjectsSortMode.None)) {
+        foreach (var m in UnityCompat.FindAll<HazardRespawnMarker>()) {
             var d = ((Vector2)m.transform.position - target).sqrMagnitude;
             if (d < bestDist) (bestDist, safeSpot, found) = (d, m.transform.position, true);
         }
 
-        foreach (var tp in Object.FindObjectsByType<TransitionPoint>(FindObjectsSortMode.None)) {
+        foreach (var tp in UnityCompat.FindAll<TransitionPoint>()) {
             var pos = tp.respawnMarker != null ? tp.respawnMarker.transform.position : tp.transform.position;
             var d = ((Vector2)pos - target).sqrMagnitude;
             if (d < bestDist) (bestDist, safeSpot, found) = (d, pos, true);
