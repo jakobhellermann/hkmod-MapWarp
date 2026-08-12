@@ -38,13 +38,13 @@
         <Error Condition="'$(ManagedDir)' != '' And !Exists('$(ManagedDir)')" Text="ManagedDir '$(ManagedDir)' does not exist."/>
     </Target>
     <ItemGroup Condition="Exists('$(ManagedDir)')">
-        <LocalReferences Include="Assembly-CSharp;PlayMaker;Newtonsoft.Json;TeamCherry.TK2D"/>
-        <LocalReferences Include="MonoMod.RuntimeDetour;MonoMod.Utils;MonoMod.Backports;Mono.Cecil"/>
+        <LocalReferences Include="Assembly-CSharp;PlayMaker;Newtonsoft.Json"/>
+        <LocalReferences Include="MonoMod.RuntimeDetour;MonoMod.Utils;Mono.Cecil"/>
         <LocalReferences
                 Include="UnityEngine;UnityEngine.CoreModule;UnityEngine.IMGUIModule;UnityEngine.InputLegacyModule;UnityEngine.Physics2DModule;UnityEngine.TextRenderingModule;UnityEngine.UI;UnityEngine.UIModule"
         />
-        <!-- The game ships 4.0.3.0, the netstandard2.1 reference pack 4.0.2.0; without this MSB3277 fires. -->
-        <LocalReferences Include="System.ValueTuple"/>
+        <!-- Only shipped from 1.5.12620 on. System.ValueTuple: the game has 4.0.3.0, the netstandard2.1 reference pack 4.0.2.0, so MSB3277 fires without it. -->
+        <LocalReferences Include="TeamCherry.TK2D;MonoMod.Backports;System.ValueTuple" Condition="'$(TargetFramework)' == 'hk1512620'"/>
         <Reference Include="@(LocalReferences->'$(ManagedDir)/%(Identity).dll')" Private="false"/>
     </ItemGroup>
 
