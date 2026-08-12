@@ -55,7 +55,7 @@ public class MapNavigation : MonoBehaviour {
         try {
             if (!MapOpen) return;
             var room = MapTeleport.PreviewRoom;
-            if (string.IsNullOrEmpty(room)) return;
+            if (room is null or "") return;
 
             DrawRespawnPoints();
 

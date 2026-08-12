@@ -135,17 +135,8 @@ internal static class MapTeleport {
         });
     }
 
-    // Opening the inventory runs SetIsInventoryOpen(true) -> SetPausedState(true) -> SetTimeScale(0). The FSM
-    // undoes that in Regain Control, but forcing the close and starting the scene transition in the same frame
-    // loses it and the world stays frozen. Do it ourselves, once the teleport has landed.
     private static void ResumeGameplay() {
-        GameManager.instance.SetIsInventoryOpen(false);
-
-        // Opening the inventory renders the world into a texture, disables the camera and shows the texture on
-        // the ScreenPlane. Unfreeze re-enables the camera and queues the plane's renderer off; without it the
-        // world keeps simulating behind a frozen screenshot. Unfreeze is a no-op when nothing is frozen.
-        var screenPlane = GameCameras.instance.hudCamera.transform.Find("Inventory/Border/Inventory ScreenPlane");
-        screenPlane.GetComponent<DisplayFrozenCamera>().Unfreeze();
+        GameCompat.EndInventoryPause();
     }
 
     // Nothing gets the hero off a bench when we warp him away from it: the bench is scene-local, so its
