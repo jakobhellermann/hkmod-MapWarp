@@ -3,6 +3,7 @@
     Generate one assembly per game version.
         alias      game version    framework
         hk1221     1.2.2.1         net35
+        hk1315     1.3.1.5         net35
         hk1432     1.4.3.2         net35
         hk1578     1.5.78.11833    net472
         hk1512620  1.5.12620       netstandard2.1
@@ -17,6 +18,14 @@
         <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <ModsLayout>flat</ModsLayout>
+        <NoUnityModules>true</NoUnityModules>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'hk1315'">
+        <HollowKnightVersion>1.3.1.5</HollowKnightVersion>
+        <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+        <ModsLayout>subdirectory</ModsLayout>
+        <NoUnityModules>true</NoUnityModules>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'hk1432'">
         <HollowKnightVersion>1.4.3.2</HollowKnightVersion>

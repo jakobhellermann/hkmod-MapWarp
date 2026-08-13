@@ -7,7 +7,7 @@
 
     <PropertyGroup>
         <!-- One assembly per game version; see HollowKnight.TargetFrameworks.props -->
-        <TargetFrameworks>hk1512620;hk1578;hk1432</TargetFrameworks>
+        <TargetFrameworks>hk1512620;hk1578;hk1432;hk1315</TargetFrameworks>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <EnableNETAnalyzers>True</EnableNETAnalyzers>
@@ -40,11 +40,13 @@
     <ItemGroup Condition="Exists('$(ManagedDir)')">
         <LocalReferences Include="Assembly-CSharp;PlayMaker"/>
         <LocalReferences Include="MonoMod.RuntimeDetour;MonoMod.Utils;Mono.Cecil"/>
+        <LocalReferences Include="UnityEngine;UnityEngine.UI"/>
         <LocalReferences
-                Include="UnityEngine;UnityEngine.CoreModule;UnityEngine.IMGUIModule;UnityEngine.Physics2DModule;UnityEngine.TextRenderingModule;UnityEngine.UI;UnityEngine.UIModule"
+                Include="UnityEngine.CoreModule;UnityEngine.IMGUIModule;UnityEngine.Physics2DModule;UnityEngine.TextRenderingModule;UnityEngine.UIModule"
+                Condition="'$(NoUnityModules)' != 'true'"
         />
         <!-- On 1.4.3.2 Input is still part of UnityEngine.CoreModule and there is no separate module. -->
-        <LocalReferences Include="UnityEngine.InputLegacyModule" Condition="'$(TargetFramework)' != 'hk1432'"/>
+        <LocalReferences Include="UnityEngine.InputLegacyModule" Condition="'$(NoUnityModules)' != 'true' And '$(TargetFramework)' != 'hk1432'"/>
         <!-- Only shipped from 1.5.12620 on. System.ValueTuple: the game has 4.0.3.0, the netstandard2.1 reference pack 4.0.2.0, so MSB3277 fires without it. -->
         <LocalReferences Include="TeamCherry.TK2D;MonoMod.Backports;System.ValueTuple" Condition="'$(TargetFramework)' == 'hk1512620'"/>
         <Reference Include="@(LocalReferences->'$(ManagedDir)/%(Identity).dll')" Private="false"/>

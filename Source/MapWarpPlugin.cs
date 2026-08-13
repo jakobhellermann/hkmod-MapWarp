@@ -66,6 +66,7 @@ public class MapWarpPlugin() : Mod("MapWarp"), ITogglableMod, IGlobalSettings<Se
         // Clean up everything, in order to support hot reloading
         Hooks.UninstallAll();
         MapReveal.Uninstall();
+        MapNavigationCursor.Uninstall();
         CompassAlways.Uninstall();
 
         foreach (var c in UnityCompat.FindAll<MapRoomBorders>(includeInactive: true))

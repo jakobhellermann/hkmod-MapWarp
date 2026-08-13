@@ -1,4 +1,5 @@
 using System;
+using Modding;
 using UnityEngine;
 
 using MapWarp.Source.Compat;
@@ -196,12 +197,34 @@ public class MapNavigation : MonoBehaviour {
 // unlocked). InputHandler otherwise locks the cursor whenever there's no mouse movement (everywhere but
 // menus), which warps it to screen-center and makes Input.mousePosition read center — breaking the mouse
 // features and the hover preview whenever the cursor is held still.
+//
+// From 1.5.12620 on InputHandler.OnGUI sets thr cursor with
+// SetCursorEnabled, while before that it delegates to ModHooks.OnCursor every frame. On 1432 it gets overwritten, on 1315 the method doesn't exist.
 internal static class MapNavigationCursor {
+#if HK1512620
     internal static void Install() {
         Hooks.Add(typeof(InputHandler), "SetCursorEnabled", (Action<Action<bool>, bool>)SetCursorEnabled);
     }
 
+    internal static void Uninstall() { }
+
     private static void SetCursorEnabled(Action<bool> orig, bool isEnabled) {
         orig(MapNavigation.MapOpen || isEnabled);
     }
+#else
+    internal static void Install() => ModHooks.CursorHook += OnCursor;
+
+    internal static void Uninstall() => ModHooks.CursorHook -= OnCursor;
+
+    // A registered CursorHook replaces ModHooks.OnCursor's default entirely, so the else branch has to
+    // reproduce it: visible only while paused.
+    private static void OnCursor() {
+        if (MapNavigation.MapOpen) {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        } else {
+            Cursor.visible = GameManager.instance.isPaused;
+        }
+    }
+#endif
 }
