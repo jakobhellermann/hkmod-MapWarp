@@ -1,3 +1,4 @@
+using GlobalEnums;
 using UnityEngine;
 
 namespace MapWarp.Source.Compat;
@@ -17,6 +18,33 @@ internal static class GameCompat {
         // simulating behind a frozen screenshot. Unfreeze is a no-op when nothing is frozen.
         var screenPlane = GameCameras.instance.hudCamera.transform.Find("Inventory/Border/Inventory ScreenPlane");
         screenPlane.GetComponent<DisplayFrozenCamera>().Unfreeze();
+#endif
+    }
+
+    internal static void BeginDreamGateTransition(GameManager gm, string targetScene) {
+#if HK1221
+        // 1.2.2.1 has no SceneLoadInfo; ChangeToScene is what WarpToDreamGate itself goes through.
+        gm.ChangeToScene(targetScene, "dreamGate", 0f);
+#else
+        // PreventCameraFadeOut: the dreamGate entry path never sends "SCENE FADE IN", so allowing the fade-out would
+        // leave the screen black. Suppressing it (a hard cut) matches what DebugMod/PreciseSavestates do for dreamGate.
+        gm.BeginSceneTransition(new GameManager.SceneLoadInfo {
+            SceneName = targetScene,
+            HeroLeaveDirection = GatePosition.unknown,
+            EntryGateName = "dreamGate",
+            EntryDelay = 0f,
+            PreventCameraFadeOut = true,
+            WaitForSceneTransitionCameraFade = false
+        });
+#endif
+    }
+
+    /// 1.2.2.1 has no next-area name plates on the quick map.
+    internal static void HideNextAreaDisplays(GameMap map) {
+#if !HK1221
+        foreach (var display in map.GetComponentsInChildren<MapNextAreaDisplay>(true))
+            foreach (Transform child in display.transform)
+                child.gameObject.SetActive(false);
 #endif
     }
 }

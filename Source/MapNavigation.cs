@@ -193,38 +193,20 @@ public class MapNavigation : MonoBehaviour {
     }
 }
 
-// While a map is open, force the game's own cursor handling to keep the OS cursor enabled (visible +
-// unlocked). InputHandler otherwise locks the cursor whenever there's no mouse movement (everywhere but
-// menus), which warps it to screen-center and makes Input.mousePosition read center — breaking the mouse
-// features and the hover preview whenever the cursor is held still.
-//
-// From 1.5.12620 on InputHandler.OnGUI sets thr cursor with
-// SetCursorEnabled, while before that it delegates to ModHooks.OnCursor every frame. On 1432 it gets overwritten, on 1315 the method doesn't exist.
+// While a map is open, keep the OS cursor visible and unlocked. InputHandler.OnGUI decides the cursor every frame
+// and nothing else; it hides the cursor during gameplay, and on 1.2.2.1 also locks it, which warps the pointer to
+// screen-center the moment it is assigned and makes Input.mousePosition read center.
 internal static class MapNavigationCursor {
-#if HK1512620
-    internal static void Install() {
-        Hooks.Add(typeof(InputHandler), "SetCursorEnabled", (Action<Action<bool>, bool>)SetCursorEnabled);
-    }
+    internal static void Install() =>
+        Hooks.Add(typeof(InputHandler), "OnGUI", (Action<Action<InputHandler>, InputHandler>)OnGUI);
 
-    internal static void Uninstall() { }
-
-    private static void SetCursorEnabled(Action<bool> orig, bool isEnabled) {
-        orig(MapNavigation.MapOpen || isEnabled);
-    }
-#else
-    internal static void Install() => ModHooks.CursorHook += OnCursor;
-
-    internal static void Uninstall() => ModHooks.CursorHook -= OnCursor;
-
-    // A registered CursorHook replaces ModHooks.OnCursor's default entirely, so the else branch has to
-    // reproduce it: visible only while paused.
-    private static void OnCursor() {
-        if (MapNavigation.MapOpen) {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        } else {
-            Cursor.visible = GameManager.instance.isPaused;
+    private static void OnGUI(Action<InputHandler> orig, InputHandler self) {
+        if (!MapNavigation.MapOpen) {
+            orig(self);
+            return;
         }
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
-#endif
 }
