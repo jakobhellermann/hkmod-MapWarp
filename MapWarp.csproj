@@ -38,7 +38,7 @@
         <Error Condition="'$(ManagedDir)' != '' And !Exists('$(ManagedDir)')" Text="ManagedDir '$(ManagedDir)' does not exist."/>
     </Target>
     <ItemGroup Condition="Exists('$(ManagedDir)')">
-        <LocalReferences Include="Assembly-CSharp;PlayMaker;Newtonsoft.Json"/>
+        <LocalReferences Include="Assembly-CSharp;PlayMaker"/>
         <LocalReferences Include="MonoMod.RuntimeDetour;MonoMod.Utils;Mono.Cecil"/>
         <LocalReferences
                 Include="UnityEngine;UnityEngine.CoreModule;UnityEngine.IMGUIModule;UnityEngine.Physics2DModule;UnityEngine.TextRenderingModule;UnityEngine.UI;UnityEngine.UIModule"
@@ -53,7 +53,7 @@
     <ItemGroup>
         <None Include="README.md" Pack="True" PackagePath="README.md"/>
         <!-- Offline-generated map data for every room (tools/extract_respawns.sh). -->
-        <EmbeddedResource Include="data/mapwarp_respawns.json"/>
+        <EmbeddedResource Include="data/mapwarp_respawns.bin"/>
     </ItemGroup>
 
     <Target Name="CopyMod" AfterTargets="PostBuildEvent" Condition="'$(ModsDir)' != '' And Exists('$(ModsDir)')">

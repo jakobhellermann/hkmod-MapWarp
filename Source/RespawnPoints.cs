@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text;
 using UnityEngine;
 
 namespace MapWarp.Source;
 
 // Safe respawn points per scene, normalized to [0,1] (world = normalized * sceneSize, as in MapTeleport).
-// Generated offline for every room and embedded as `mapwarp_respawns.json` (see `tools/extract_respawns.sh`).
+// Generated offline for every room and embedded as `mapwarp_respawns.bin` (see `tools/extract_respawns.sh`).
 internal static class RespawnPoints {
-    private const string ResourceName = "mapwarp_respawns.json";
+    private const string ResourceName = "mapwarp_respawns.bin";
 
     private static Dictionary<string, List<Vector2>> Data => field ??= LoadEmbedded();
 
@@ -20,24 +20,26 @@ internal static class RespawnPoints {
                    ?? throw new FileNotFoundException($"embedded resource {ResourceName} missing");
 
         using var stream = asm.GetManifestResourceStream(name)!;
-        using var reader = new StreamReader(stream);
-        var parsed = Parse(reader.ReadToEnd());
-        Logging.Info($"Respawn points: {parsed.Count} embedded scenes");
-        return parsed;
-    }
+        using var reader = new BinaryReader(stream);
 
-    private static Dictionary<string, List<Vector2>> Parse(string json) {
-        var result = new Dictionary<string, List<Vector2>>();
-        var raw = JsonConvert.DeserializeObject<Dictionary<string, List<float[]>>>(json)
-                  ?? throw new FormatException($"{ResourceName} did not parse into a scene map");
-        foreach (var (scene, pts) in raw) {
-            var list = new List<Vector2>(pts.Count);
-            foreach (var p in pts)
-                if (p.Length >= 2)
-                    list.Add(new Vector2(p[0], p[1]));
+        var sceneCount = reader.ReadInt32();
+        var result = new Dictionary<string, List<Vector2>>(sceneCount);
+        var points = 0;
+        for (var s = 0; s < sceneCount; s++) {
+            var scene = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
+            var pointCount = reader.ReadInt32();
+            var list = new List<Vector2>(pointCount);
+            for (var p = 0; p < pointCount; p++) list.Add(new Vector2(reader.ReadSingle(), reader.ReadSingle()));
             result[scene] = list;
+            points += pointCount;
         }
 
+        // A truncated or overlong resource would otherwise surface as silently missing rooms.
+        if (stream.Position != stream.Length)
+            throw new InvalidOperationException(
+                $"{ResourceName}: read {stream.Position} of {stream.Length} bytes after {sceneCount} scenes");
+
+        Logging.Info($"Respawn points: {result.Count} embedded scenes, {points} points");
         return result;
     }
 

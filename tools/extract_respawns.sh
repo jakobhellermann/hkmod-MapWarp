@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Regenerate data/mapwarp_respawns.json: every safe respawn point (HazardRespawnMarker + TransitionPoint
-# respawn) of every room, normalized to [0,1] within its scene. RespawnPoints embeds the result.
+# Regenerate data/mapwarp_respawns.bin: every safe respawn point (HazardRespawnMarker + TransitionPoint
+# respawn) of every room, normalized to [0,1] within its scene. RespawnPoints embeds and reads the result.
+#
+# Layout (little endian): int32 sceneCount, then per scene int32 nameLen, nameLen UTF-8 bytes, int32 pointCount,
+# and pointCount pairs of float32 x,y. Binary rather than JSON because 1.2.2.1 ships no Newtonsoft.Json.
 #
 # Requires `rabex` (https://github.com/jakobhellermann/rabex-cli) with `references cat --jq` and the
 # `world_position` builtin, plus `jq` and `python3`. Run after a game update to refresh the data.
@@ -11,7 +14,7 @@ set -euo pipefail
 GAME="${1:-Hollow Knight}"
 RABEX="${RABEX:-rabex}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/data/mapwarp_respawns.json"
+OUT="$ROOT/data/mapwarp_respawns.bin"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -61,6 +64,16 @@ for scene, world in sorted(pts.items()):
 if len(data) < 100:
     raise SystemExit(f"only {len(data)} scenes with points — that is too few, refusing to write {out}")
 
-json.dump(data, open(out, "w"), separators=(",", ":"), sort_keys=True)
+import struct
+with open(out, "wb") as f:
+    f.write(struct.pack("<i", len(data)))
+    for scene in sorted(data):
+        name = scene.encode("utf-8")
+        f.write(struct.pack("<i", len(name)))
+        f.write(name)
+        f.write(struct.pack("<i", len(data[scene])))
+        for x, y in data[scene]:
+            f.write(struct.pack("<ff", x, y))
+
 print(f"scenes={len(data)} points={sum(len(v) for v in data.values())} skipped_no_dims={skipped} -> {out}", file=sys.stderr)
 PY
