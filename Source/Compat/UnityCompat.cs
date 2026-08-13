@@ -9,8 +9,11 @@ internal static class UnityCompat {
 #if HK1512620
         Object.FindObjectsByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude,
             FindObjectsSortMode.None);
-#else
+#elif HK1578
         Object.FindObjectsOfType<T>(includeInactive);
+#else
+        // FindObjectsOfType got its includeInactive overload in Unity 2020
+        includeInactive ? Resources.FindObjectsOfTypeAll<T>() : Object.FindObjectsOfType<T>();
 #endif
 
     internal static T? FindFirst<T>() where T : Object =>
