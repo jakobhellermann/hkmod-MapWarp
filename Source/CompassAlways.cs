@@ -1,6 +1,8 @@
 using System;
 using Modding;
 
+using MapWarp.Source.Compat;
+
 namespace MapWarp.Source;
 
 internal static class CompassAlways {
@@ -9,11 +11,11 @@ internal static class CompassAlways {
     internal static void Install() {
         Hooks.Add(typeof(GameMap), nameof(GameMap.PositionCompass),
             (Action<Action<GameMap, bool>, GameMap, bool>)PositionCompass);
-        ModHooks.GetPlayerBoolHook += GetBool;
+        PlayerBoolHook.Add(GetBool);
     }
 
     internal static void Uninstall() {
-        ModHooks.GetPlayerBoolHook -= GetBool;
+        PlayerBoolHook.Remove(GetBool);
     }
 
     private static void PositionCompass(Action<GameMap, bool> orig, GameMap self, bool posShade) {

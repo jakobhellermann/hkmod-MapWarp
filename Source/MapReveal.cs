@@ -2,6 +2,8 @@ using System;
 using Modding;
 using UnityEngine;
 
+using MapWarp.Source.Compat;
+
 namespace MapWarp.Source;
 
 internal static class MapReveal {
@@ -15,7 +17,7 @@ internal static class MapReveal {
     ];
 
     internal static void Install() {
-        ModHooks.GetPlayerBoolHook += GetBool;
+        PlayerBoolHook.Add(GetBool);
 
         Hooks.Add(typeof(GameMap), nameof(GameMap.WorldMap), (Action<Action<GameMap>, GameMap>)OnWorldMap);
         foreach (var m in Hooks.Methods(typeof(GameMap), m => m.Name.StartsWith("QuickMap", StringComparison.Ordinal)))
@@ -23,13 +25,14 @@ internal static class MapReveal {
     }
 
     internal static void Uninstall() {
-        ModHooks.GetPlayerBoolHook -= GetBool;
+        PlayerBoolHook.Remove(GetBool);
     }
 
     private static bool GetBool(string name, bool orig) =>
         (Enabled && Array.IndexOf(UnlockBools, name) >= 0) || orig;
 
     private static void OnWorldMap(Action<GameMap> orig, GameMap self) {
+        using var unlock = Enabled ? MapUnlock.Begin(UnlockBools) : null;
         orig(self);
 
         try {
@@ -40,6 +43,7 @@ internal static class MapReveal {
     }
 
     private static void OnQuickMap(Action<GameMap> orig, GameMap self) {
+        using var unlock = Enabled ? MapUnlock.Begin(UnlockBools) : null;
         orig(self);
 
         try {
@@ -51,9 +55,7 @@ internal static class MapReveal {
             foreach (var area in MapUtil.Areas(self))
                 area.SetActive(true);
 
-            foreach (var display in self.GetComponentsInChildren<MapNextAreaDisplay>(true))
-                foreach (Transform child in display.transform)
-                    child.gameObject.SetActive(false);
+            GameCompat.HideNextAreaDisplays(self);
         } catch (Exception e) {
             Logging.Error(e);
         }

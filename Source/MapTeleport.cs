@@ -14,24 +14,22 @@ namespace MapWarp.Source;
 internal static class MapTeleport {
     internal static void Install() {
         Hooks.Add(typeof(GameMap), "Update", (Action<Action<GameMap>, GameMap>)GameMapUpdate);
-        Hooks.Add(typeof(GameManager), "PositionHeroAtSceneEntrance",
-            (Action<Action<GameManager>, GameManager>)PositionHeroAtSceneEntrance);
-        Hooks.Add(typeof(HeroController), "FinishedEnteringScene",
-            (Action<Action<HeroController, bool, bool>, HeroController, bool, bool>)ReapplyHazardRespawnAfterEntry);
+        HeroSceneEntry.OnPositioned(OnHeroPositioned);
+        HeroSceneEntry.OnEntered(OnSceneEntered);
     }
 
-    private static float MapSceneWidth(GameMap map) => ReflectionHelper.GetField<GameMap, float>(map, "sceneWidth");
-    private static float MapSceneHeight(GameMap map) => ReflectionHelper.GetField<GameMap, float>(map, "sceneHeight");
+    private static float MapSceneWidth(GameMap map) => Reflect.GetField<GameMap, float>(map, "sceneWidth");
+    private static float MapSceneHeight(GameMap map) => Reflect.GetField<GameMap, float>(map, "sceneHeight");
 
     // Cross-scene teleports go through a "dreamGate" transition. The destination position isn't known until the new
     // scene's tilemap is loaded, so we stash the click's normalized room position here and resolve it to world
-    // coordinates in the PositionHeroAtSceneEntrance postfix once GetSceneWidth/Height are valid for the destination.
+    // coordinates in the OnHeroPositioned postfix once GetSceneWidth/Height are valid for the destination.
     private static bool pendingDreamGate;
     private static Vector2 pendingNormalized;
 
     // Safe hazard-respawn the last PlaceHero applied (null if no safe spot was found). For a cross-scene teleport
-    // PositionHeroAtSceneEntrance promotes this into pendingReapplyRespawn so it can be re-applied after
-    // FinishedEnteringScene re-anchors the respawn to the hero's landing position (see ReapplyHazardRespawnAfterEntry).
+    // OnHeroPositioned promotes this into pendingReapplyRespawn so it can be re-applied after
+    // FinishedEnteringScene re-anchors the respawn to the hero's landing position (see OnSceneEntered).
     private static (Vector3 pos, bool facingRight)? lastSafeRespawn;
     private static (Vector3 pos, bool facingRight)? pendingReapplyRespawn;
 
@@ -44,19 +42,7 @@ internal static class MapTeleport {
     // selected room), so you can see every safe spot at an overlap. Reused list, refilled each frame.
     internal static readonly List<(string room, Bounds bounds)> PreviewCandidates = new();
 
-    private static HashSet<string>? buildScenes;
-
-    internal static bool IsLoadableScene(string sceneName) {
-        if (buildScenes == null) {
-            buildScenes = new HashSet<string>();
-            var count = UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings;
-            for (var i = 0; i < count; i++)
-                buildScenes.Add(Path.GetFileNameWithoutExtension(
-                    UnityEngine.SceneManagement.SceneUtility.GetScenePathByBuildIndex(i)));
-        }
-
-        return buildScenes.Contains(sceneName);
-    }
+    internal static bool IsLoadableScene(string sceneName) => UnityCompat.IsLoadableScene(sceneName);
 
     // The live GameMap, refreshed each frame from its own Update; read by MapNavigation.
     internal static GameMap? Current;
@@ -123,16 +109,7 @@ internal static class MapTeleport {
 
         pendingDreamGate = true;
         pendingNormalized = normalized;
-        // PreventCameraFadeOut: the dreamGate entry path never sends "SCENE FADE IN", so allowing the fade-out would
-        // leave the screen black. Suppressing it (a hard cut) matches what DebugMod/PreciseSavestates do for dreamGate.
-        gm.BeginSceneTransition(new GameManager.SceneLoadInfo {
-            SceneName = targetScene,
-            HeroLeaveDirection = GatePosition.unknown,
-            EntryGateName = "dreamGate",
-            EntryDelay = 0f,
-            PreventCameraFadeOut = true,
-            WaitForSceneTransitionCameraFade = false
-        });
+        GameCompat.BeginDreamGateTransition(gm, targetScene);
     }
 
     private static void ResumeGameplay() {
@@ -151,7 +128,7 @@ internal static class MapTeleport {
         pd.SetBool("disablePause", false);
 
         var hero = HeroController.instance;
-        hero.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
+        hero.GetComponent<Rigidbody2D>().MakeDynamic();
         hero.transform.rotation = Quaternion.identity;
         hero.GetComponent<tk2dSpriteAnimator>().Play("Idle");
         hero.AffectedByGravity(true);
@@ -274,9 +251,7 @@ internal static class MapTeleport {
 
     // For "dreamGate" the game's FindEntryPoint returns the stored dream gate position, so it lands somewhere
     // unrelated. We override the final position here, only for teleports we initiated.
-    private static void PositionHeroAtSceneEntrance(Action<GameManager> orig, GameManager self) {
-        orig(self);
-
+    private static void OnHeroPositioned(GameManager self) {
         if (!pendingDreamGate) return;
         pendingDreamGate = false;
         PlaceHero(new Vector2(pendingNormalized.x * self.GetSceneWidth(),
@@ -284,19 +259,16 @@ internal static class MapTeleport {
 
         // A cross-scene teleport still runs FinishedEnteringScene after this, which re-anchors the hazard respawn to
         // the hero's (possibly hazardous) landing position because it can't resolve the "dreamGate" entry gate.
-        // Queue the safe spot to be re-applied after that (ReapplyHazardRespawnAfterEntry).
+        // Queue the safe spot to be re-applied after that (OnSceneEntered).
         pendingReapplyRespawn = lastSafeRespawn;
     }
 
     // Re-apply the safe hazard respawn after a cross-scene teleport. FinishedEnteringScene (run after
-    // PositionHeroAtSceneEntrance) sets the respawn to the hero's landing position when the entry gate is
+    // the hero was positioned) sets the respawn to the hero's landing position when the entry gate is
     // unresolved ("dreamGate"); if that landing is inside a hazard, the accepted single death would respawn back
     // into it and loop, each respawn forcing a full blocking GC → the game grinds to ~1 fps. Overriding it here
     // (postfix, so after that assignment) points the respawn at a known-safe spot instead.
-    private static void ReapplyHazardRespawnAfterEntry(Action<HeroController, bool, bool> orig, HeroController self,
-        bool setHazardMarker, bool preventRunBob) {
-        orig(self, setHazardMarker, preventRunBob);
-
+    private static void OnSceneEntered(HeroController self) {
         if (pendingReapplyRespawn is not { } respawn) return;
         pendingReapplyRespawn = null;
         self.SetHazardRespawn(respawn.pos, respawn.facingRight);
@@ -309,7 +281,7 @@ internal static class MapTeleport {
         var hasSafeSpot = TryFindNearestSafeSpot(target, out var safeSpot);
 
         // Anchor the hazard-respawn location to a known-safe spot before the hero can touch anything lethal, so a
-        // hazard death recovers after one respawn instead of looping (see ReapplyHazardRespawnAfterEntry for why a
+        // hazard death recovers after one respawn instead of looping (see OnSceneEntered for why a
         // cross-scene teleport also needs a re-apply after FinishedEnteringScene).
         var hero = HeroController.instance;
         if (hasSafeSpot) {
