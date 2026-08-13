@@ -1,12 +1,40 @@
 {
   "version": 1,
   "dependencies": {
+    ".NETFramework,Version=v3.5": {
+      "HollowKnight.GameLibs": {
+        "type": "Direct",
+        "requested": "[1.2.0-hollowKnight1.4.3.2, 1.2.0-hollowKnight1.4.3.2]",
+        "resolved": "1.2.0-hollowKnight1.4.3.2",
+        "contentHash": "aqtxKobCrqYq0HotxphQJqBmErJjQLWUtSn5qg25ogM0110ubyBSy0ECOcqVSITkr9T95w5BtQ+3WQ3q6RNUDA=="
+      },
+      "Microsoft.NETFramework.ReferenceAssemblies": {
+        "type": "Direct",
+        "requested": "[1.0.3, )",
+        "resolved": "1.0.3",
+        "contentHash": "vUc9Npcs14QsyOD01tnv/m8sQUnGTGOw1BCmKcv77LBJY7OxhJ+zJF7UD/sCL3lYNFuqmQEVlkfS4Quif6FyYg==",
+        "dependencies": {
+          "Microsoft.NETFramework.ReferenceAssemblies.net35": "1.0.3"
+        }
+      },
+      "Microsoft.Unity.Analyzers": {
+        "type": "Direct",
+        "requested": "[1.27.0, )",
+        "resolved": "1.27.0",
+        "contentHash": "S8eU12HzdUjN++OBz7F08ft3weYbk5DR1rKKjCvpugqtdGHHC4Om8fJ/jGnJ5QMJY+SzzFHQTyQqfA1neAV+pw=="
+      },
+      "Microsoft.NETFramework.ReferenceAssemblies.net35": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "Mhbr13IGgsW4AHj50uAiVNMPWdvUPWePRsI4x1NiTkhHUc4rqi9XvY5xxBC4d56bJypQbxAZ8bPuZIpz+TjBVQ=="
+      }
+    },
     ".NETFramework,Version=v4.7.2": {
       "HollowKnight.GameLibs": {
         "type": "Direct",
         "requested": "[1.2.0-hollowKnight1.5.78.11833, 1.2.0-hollowKnight1.5.78.11833]",
         "resolved": "1.2.0-hollowKnight1.5.78.11833",
-        "contentHash": "3SV3qPX8u1MtjmglZ5giJHZArTVHEklEXvx4y5nJvpNMxCm93F1GdpVYsl7rr2dZI9LhP2ZWXVoxnuuTnPgaMw=="
+        "contentHash": "aNEdeyInq6x3skkQmcW1AHiAHzBqYjvcCM6Dv4810tFEHs4xowc+PEScA63Kioegk5ycti3BBGP0Hxwb3ZoC3A=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -34,7 +62,7 @@
         "type": "Direct",
         "requested": "[1.2.0-hollowKnight1.5.12620, 1.2.0-hollowKnight1.5.12620]",
         "resolved": "1.2.0-hollowKnight1.5.12620",
-        "contentHash": "F6CgHpSfskxKSQ8QW8aNixvI1HS5AjmITkPIeXufSk1v8dSiGnyQxjl+t1JQw+CpmZVbRiaJuIJAXDsZMkLC5w=="
+        "contentHash": "CBHRNdg6nGfKGRum80J6f1WturNi8ivjnG9JWbg6tLvoWhvlw2t7DuGSwPj48VgzyqehUUOjCoFT7JThh7616g=="
       },
       "Microsoft.Unity.Analyzers": {
         "type": "Direct",

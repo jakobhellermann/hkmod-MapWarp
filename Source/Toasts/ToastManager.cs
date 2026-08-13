@@ -80,7 +80,7 @@ public class ToastManager : MonoBehaviour {
             toastsDirty |= toasts.RemoveAll(toast => now - toast.StartTime > MaxToastAge) > 0;
             RefreshMaxToastCount();
             if (toastsDirty) {
-                toastText.text = string.Join("\n", toasts.Select(toast => toast.Text));
+                toastText.text = string.Join("\n", toasts.Select(toast => toast.Text).ToArray());
                 toastsDirty = false;
             }
         } catch (Exception e) {
