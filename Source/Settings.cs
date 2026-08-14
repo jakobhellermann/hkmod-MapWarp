@@ -6,7 +6,6 @@ public class Settings {
     public bool ShowRespawnPoints = true;
     public bool UnlockEntireMap = true;
     public bool ShowFullMapInQuickmap = false;
-    public bool InstantMapOpen = true;
     public bool AlwaysCompass = false;
     public bool ShowRoomBorders = false;
 }

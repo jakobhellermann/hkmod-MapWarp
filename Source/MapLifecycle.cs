@@ -26,7 +26,6 @@ internal static class MapLifecycle {
     // above won't fire) still initialises. Every handler is a no-op when no map is present.
     internal static void Dispatch() {
         Run(MapRoomBorders.Install);
-        Run(InstantMapOpen.Apply);
     }
 
     private static void Run(Action handler) {
