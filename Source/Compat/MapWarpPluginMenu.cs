@@ -22,11 +22,6 @@ public partial class MapWarpPlugin : IGlobalSettings<Settings>, IMenuMod {
             () => Settings.UnlockEntireMap, v => Settings.UnlockEntireMap = v),
         Toggle("Full map in quickmap", "Show every zone in the quick map instead of only the current one.",
             () => Settings.ShowFullMapInQuickmap, v => Settings.ShowFullMapInQuickmap = v),
-        Toggle("Instant map open", "Open the quick map without its opening delay.",
-            () => Settings.InstantMapOpen, v => {
-                Settings.InstantMapOpen = v;
-                InstantMapOpen.Apply();
-            }),
         Toggle("Always show compass", "Always show your position, as if the Wayward Compass were equipped.",
             () => Settings.AlwaysCompass, v => Settings.AlwaysCompass = v),
         Toggle("Show room borders", "Outline each room on the map and label it with its scene name.",
