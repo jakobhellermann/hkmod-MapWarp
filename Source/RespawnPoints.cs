@@ -6,14 +6,21 @@ using UnityEngine;
 
 namespace MapWarp.Source;
 
-// Safe respawn points per scene, normalized to [0,1] (world = normalized * sceneSize, as in MapTeleport).
-// Generated offline for every room and embedded as `mapwarp_respawns.bin` (see `tools/extract_respawns.sh`).
+// Safe respawn points per scene, normalized as (pos + offset) / size within the rect the map maps the scene onto.
+// The rect is stored rather than read at runtime, where the game only holds it for the scene the hero is in.
+// Generated offline and embedded as `mapwarp_respawns.bin` (see `tools/extract_respawns.sh`).
 internal static class RespawnPoints {
     private const string ResourceName = "mapwarp_respawns.bin";
 
-    private static Dictionary<string, List<Vector2>> Data => field ??= LoadEmbedded();
+    private sealed class Scene {
+        internal Vector2 Offset;
+        internal Vector2 Size;
+        internal List<Vector2> Points = null!;
+    }
 
-    private static Dictionary<string, List<Vector2>> LoadEmbedded() {
+    private static Dictionary<string, Scene> Data => field ??= LoadEmbedded();
+
+    private static Dictionary<string, Scene> LoadEmbedded() {
         var asm = typeof(RespawnPoints).Assembly;
         var name = Array.Find(asm.GetManifestResourceNames(),
                        n => n.EndsWith(ResourceName, StringComparison.Ordinal))
@@ -23,14 +30,19 @@ internal static class RespawnPoints {
         using var reader = new BinaryReader(stream);
 
         var sceneCount = reader.ReadInt32();
-        var result = new Dictionary<string, List<Vector2>>(sceneCount);
+        var result = new Dictionary<string, Scene>(sceneCount);
         var points = 0;
         for (var s = 0; s < sceneCount; s++) {
             var scene = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
+            var entry = new Scene {
+                Offset = new Vector2(reader.ReadSingle(), reader.ReadSingle()),
+                Size = new Vector2(reader.ReadSingle(), reader.ReadSingle())
+            };
             var pointCount = reader.ReadInt32();
-            var list = new List<Vector2>(pointCount);
-            for (var p = 0; p < pointCount; p++) list.Add(new Vector2(reader.ReadSingle(), reader.ReadSingle()));
-            result[scene] = list;
+            entry.Points = new List<Vector2>(pointCount);
+            for (var p = 0; p < pointCount; p++)
+                entry.Points.Add(new Vector2(reader.ReadSingle(), reader.ReadSingle()));
+            result[scene] = entry;
             points += pointCount;
         }
 
@@ -43,5 +55,13 @@ internal static class RespawnPoints {
         return result;
     }
 
-    internal static IList<Vector2>? Get(string scene) => Data.GetValueOrDefault(scene);
+    internal static IList<Vector2>? Get(string scene) => Data.GetValueOrDefault(scene)?.Points;
+
+    /// A point normalized within the scene's map rect, back to a world position in that scene.
+    internal static Vector2 ToWorld(string scene, Vector2 normalized) {
+        var entry = Data.GetValueOrDefault(scene)
+                    ?? throw new KeyNotFoundException($"no map rect for scene {scene}");
+        return new Vector2(normalized.x * entry.Size.x - entry.Offset.x,
+            normalized.y * entry.Size.y - entry.Offset.y);
+    }
 }

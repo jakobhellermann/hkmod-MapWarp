@@ -18,13 +18,9 @@ internal static class MapTeleport {
         HeroSceneEntry.OnEntered(OnSceneEntered);
     }
 
-    private static float MapSceneWidth(GameMap map) => Reflect.GetField<GameMap, float>(map, "sceneWidth");
-    private static float MapSceneHeight(GameMap map) => Reflect.GetField<GameMap, float>(map, "sceneHeight");
-
-    // Cross-scene teleports go through a "dreamGate" transition. The destination position isn't known until the new
-    // scene's tilemap is loaded, so we stash the click's normalized room position here and resolve it to world
-    // coordinates in the OnHeroPositioned postfix once GetSceneWidth/Height are valid for the destination.
-    private static bool pendingDreamGate;
+    // Cross-scene teleports go through a "dreamGate" transition, so the click's target is stashed here and turned
+    // into a world position once the destination scene is up.
+    private static string? pendingScene;
     private static Vector2 pendingNormalized;
 
     // Safe hazard-respawn the last PlaceHero applied (null if no safe spot was found). For a cross-scene teleport
@@ -100,14 +96,14 @@ internal static class MapTeleport {
         var targetScene = best;
         if (targetScene == gm.sceneName) {
             CloseInventoryMap();
-            PlaceHero(new Vector2(normalized.x * MapSceneWidth(gameMap), normalized.y * MapSceneHeight(gameMap)));
+            PlaceHero(RespawnPoints.ToWorld(targetScene, normalized));
             ResumeGameplay();
             return;
         }
 
         CloseInventoryMap();
 
-        pendingDreamGate = true;
+        pendingScene = targetScene;
         pendingNormalized = normalized;
         GameCompat.BeginDreamGateTransition(gm, targetScene);
     }
@@ -252,10 +248,9 @@ internal static class MapTeleport {
     // For "dreamGate" the game's FindEntryPoint returns the stored dream gate position, so it lands somewhere
     // unrelated. We override the final position here, only for teleports we initiated.
     private static void OnHeroPositioned(GameManager self) {
-        if (!pendingDreamGate) return;
-        pendingDreamGate = false;
-        PlaceHero(new Vector2(pendingNormalized.x * self.GetSceneWidth(),
-            pendingNormalized.y * self.GetSceneHeight()));
+        if (pendingScene is not { } scene) return;
+        pendingScene = null;
+        PlaceHero(RespawnPoints.ToWorld(scene, pendingNormalized));
 
         // A cross-scene teleport still runs FinishedEnteringScene after this, which re-anchors the hazard respawn to
         // the hero's (possibly hazardous) landing position because it can't resolve the "dreamGate" entry gate.
