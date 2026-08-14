@@ -2,9 +2,8 @@ using System;
 
 namespace MapWarp.Source.Compat;
 
-/// From 1.3.1.5 on the API routes PlayerData reads through GetBool, so PlayerBoolHook already reveals the map.
-/// 1.2.2.1's GameMap reads the fields directly. They have to hold while it builds the map, including while
-/// WorldMap widens the pan limits that GameMap.Update clamps the map position to.
+/// 1.2.2.1's GameMap reads the PlayerData fields directly rather than through GetBool, so the read hook cannot
+/// reach it. Writing them for the duration of a call is the only way; permanently would alter the save.
 internal sealed class MapUnlock : IDisposable {
     private readonly string[] bools;
     private readonly bool[] saved;
@@ -14,8 +13,7 @@ internal sealed class MapUnlock : IDisposable {
         this.saved = saved;
     }
 
-    /// Null where intercepting the reads is enough.
-    internal static MapUnlock? Begin(string[] bools) {
+    internal static MapUnlock Begin(string[] bools) {
 #if HK1221
         var pd = PlayerData.instance;
         var saved = new bool[bools.Length];
@@ -26,7 +24,7 @@ internal sealed class MapUnlock : IDisposable {
 
         return new MapUnlock(bools, saved);
 #else
-        return null;
+        return new MapUnlock([], []);
 #endif
     }
 
