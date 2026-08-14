@@ -5,9 +5,9 @@
     "dependencies": {
       "HollowKnight.GameLibs": {
         "type": "Direct",
-        "requested": "[1.2.0-hollowKnight1.4.3.2, 1.2.0-hollowKnight1.4.3.2]",
-        "resolved": "1.2.0-hollowKnight1.4.3.2",
-        "contentHash": "aqtxKobCrqYq0HotxphQJqBmErJjQLWUtSn5qg25ogM0110ubyBSy0ECOcqVSITkr9T95w5BtQ+3WQ3q6RNUDA=="
+        "requested": "[1.0.0-hollowknight.1.4.3.2.api74hksr, 1.0.0-hollowknight.1.4.3.2.api74hksr]",
+        "resolved": "1.0.0-hollowknight.1.4.3.2.api74hksr",
+        "contentHash": "xt20VcK9dt9awNCom4P/DApVo0zkalX5/5b/udSK3Vc08RL0etT/mW4Cex8unsyPar59g347qd+X0vmBkhAJkA=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -36,9 +36,9 @@
     "dependencies": {
       "HollowKnight.GameLibs": {
         "type": "Direct",
-        "requested": "[1.2.0-hollowKnight1.3.1.5, 1.2.0-hollowKnight1.3.1.5]",
-        "resolved": "1.2.0-hollowKnight1.3.1.5",
-        "contentHash": "cmn4ndangoSJNACuY5qS7Zc/7cTKVLAgSdDDTUcm/ZwI8fWF3fBg7yC/gVWlEXr4Lu8qAe1uW9qhAq1wlHqN9Q=="
+        "requested": "[1.0.0-hollowknight.1.3.1.5.api74hksr, 1.0.0-hollowknight.1.3.1.5.api74hksr]",
+        "resolved": "1.0.0-hollowknight.1.3.1.5.api74hksr",
+        "contentHash": "ZoGG3pDdWO2nFNMdWA1Ewf315GqWssS918ZijFy8o6FIcMsoqKSSAFxS0GJu5IozIHPQ56OgfwbBRwbB3n2E0A=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -67,9 +67,9 @@
     "dependencies": {
       "HollowKnight.GameLibs": {
         "type": "Direct",
-        "requested": "[1.2.0-hollowKnight1.2.2.1, 1.2.0-hollowKnight1.2.2.1]",
-        "resolved": "1.2.0-hollowKnight1.2.2.1",
-        "contentHash": "hLddjY1FfWGw6HO9E3FOpdf/a9ScEKBBwo/SCdSaBcFNoB4nM2irjUvYaD9g7IKzRLbEbXZvtO0cF3fwqZxROw=="
+        "requested": "[1.0.0-hollowknight.1.2.2.1.api42hksr, 1.0.0-hollowknight.1.2.2.1.api42hksr]",
+        "resolved": "1.0.0-hollowknight.1.2.2.1.api42hksr",
+        "contentHash": "fLHnUOJuo5llejGRqIqoCjdXl0LFFq2jQAuy0Olk7z7DAtpe+VlMkKRK1ZH6QV4lZA3zMww0qhEso5VHwYB/7Q=="
       },
       "ILRepack.Lib.MSBuild.Task": {
         "type": "Direct",
@@ -127,9 +127,9 @@
     "dependencies": {
       "HollowKnight.GameLibs": {
         "type": "Direct",
-        "requested": "[1.2.0-hollowKnight1.5.78.11833, 1.2.0-hollowKnight1.5.78.11833]",
-        "resolved": "1.2.0-hollowKnight1.5.78.11833",
-        "contentHash": "aNEdeyInq6x3skkQmcW1AHiAHzBqYjvcCM6Dv4810tFEHs4xowc+PEScA63Kioegk5ycti3BBGP0Hxwb3ZoC3A=="
+        "requested": "[1.0.0-hollowknight.1.5.78.11833.api77, 1.0.0-hollowknight.1.5.78.11833.api77]",
+        "resolved": "1.0.0-hollowknight.1.5.78.11833.api77",
+        "contentHash": "KGKyoVIjWopaVV6zVS+wcRAtJUjYMk0lmEQWlGcL4GANhDrVDIB0LT+8OJDst8mEYpEKJZWSos5qwYNvk/BJwg=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -158,9 +158,9 @@
     "dependencies": {
       "HollowKnight.GameLibs": {
         "type": "Direct",
-        "requested": "[1.2.0-hollowKnight1.5.12620, 1.2.0-hollowKnight1.5.12620]",
-        "resolved": "1.2.0-hollowKnight1.5.12620",
-        "contentHash": "CBHRNdg6nGfKGRum80J6f1WturNi8ivjnG9JWbg6tLvoWhvlw2t7DuGSwPj48VgzyqehUUOjCoFT7JThh7616g=="
+        "requested": "[1.0.0-hollowknight.1.5.12620.api78, 1.0.0-hollowknight.1.5.12620.api78]",
+        "resolved": "1.0.0-hollowknight.1.5.12620.api78",
+        "contentHash": "Og++oWCDClh97LA609BZ1Wgd68FKq3tcPJal8Ej/kHFEBEfNW9bZlYN3a06zoALYLl2kyUNeRSaIe1JXR1p5Uw=="
       },
       "Microsoft.Unity.Analyzers": {
         "type": "Direct",

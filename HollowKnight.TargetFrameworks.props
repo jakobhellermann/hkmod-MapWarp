@@ -1,20 +1,21 @@
 <Project>
     <!--
     Generate one assembly per game version.
-        alias      game version    framework
-        hk1221     1.2.2.1         net35
-        hk1315     1.3.1.5         net35
-        hk1432     1.4.3.2         net35
-        hk1578     1.5.78.11833    net472
-        hk1512620  1.5.12620       netstandard2.1
+        alias      game version    framework       modding api
+        hk1221     1.2.2.1         net35           42hksr
+        hk1315     1.3.1.5         net35           74hksr
+        hk1432     1.4.3.2         net35           74hksr
+        hk1578     1.5.78.11833    net472          77
+        hk1512620  1.5.12620       netstandard2.1  78
     -->
 
     <PropertyGroup>
-        <GameLibsPackageVersion Condition="'$(GameLibsPackageVersion)' == ''">1.2.0</GameLibsPackageVersion>
+        <GameLibsPackageVersion Condition="'$(GameLibsPackageVersion)' == ''">1.0.0</GameLibsPackageVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'hk1221'">
         <HollowKnightVersion>1.2.2.1</HollowKnightVersion>
+        <ModdingApiVersion>42hksr</ModdingApiVersion>
         <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <ModsLayout>flat</ModsLayout>
@@ -23,6 +24,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'hk1315'">
         <HollowKnightVersion>1.3.1.5</HollowKnightVersion>
+        <ModdingApiVersion>74hksr</ModdingApiVersion>
         <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <ModsLayout>subdirectory</ModsLayout>
@@ -30,6 +32,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'hk1432'">
         <HollowKnightVersion>1.4.3.2</HollowKnightVersion>
+        <ModdingApiVersion>74hksr</ModdingApiVersion>
         <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <!-- v74 backport loads subdirectories; the v60 API does not -->
@@ -37,12 +40,14 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'hk1578'">
         <HollowKnightVersion>1.5.78.11833</HollowKnightVersion>
+        <ModdingApiVersion>77</ModdingApiVersion>
         <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <ModsLayout>subdirectory</ModsLayout>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'hk1512620'">
         <HollowKnightVersion>1.5.12620</HollowKnightVersion>
+        <ModdingApiVersion>78</ModdingApiVersion>
         <TargetFrameworkIdentifier>.NETStandard</TargetFrameworkIdentifier>
         <TargetFrameworkVersion>v2.1</TargetFrameworkVersion>
         <ModsLayout>subdirectory</ModsLayout>
@@ -60,7 +65,7 @@
         itself stays per alias.
         -->
         <PackageReference Include="HollowKnight.GameLibs"
-                          Version="[$(GameLibsPackageVersion)-hollowKnight$(HollowKnightVersion)]"
+                          Version="[$(GameLibsPackageVersion)-hollowknight.$(HollowKnightVersion).api$(ModdingApiVersion)]"
                           PrivateAssets="all"
                           NoWarn="NU1601"
                           ExcludeAssets="$(ExcludeAssetsIfLocalReference)"/>
