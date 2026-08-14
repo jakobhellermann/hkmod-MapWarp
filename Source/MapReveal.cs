@@ -1,5 +1,4 @@
 using System;
-using Modding;
 using UnityEngine;
 
 using MapWarp.Source.Compat;
@@ -9,8 +8,11 @@ namespace MapWarp.Source;
 internal static class MapReveal {
     private static bool Enabled => MapWarpPlugin.Settings.UnlockEntireMap;
 
-    private static readonly string[] UnlockBools = [
-        "hasMap", "hasQuill", "mapAllRooms",
+    // Claiming the zone maps is the feature, and nothing outside the map UI reads these. hasQuill and mapAllRooms
+    // are deliberately absent: the bench FSM tests hasQuill before calling SetupMap, and mapAllRooms drops
+    // SetupMap's name filter so it walks into the placed map markers. RevealRooms does what those two bought us.
+    private static readonly string[] OwnedMaps = [
+        "hasMap",
         "mapAbyss", "mapCity", "mapCliffs", "mapCrossroads", "mapDeepnest", "mapFogCanyon",
         "mapFungalWastes", "mapGreenpath", "mapMines", "mapOutskirts", "mapRestingGrounds",
         "mapRoyalGardens", "mapWaterways"
@@ -29,25 +31,40 @@ internal static class MapReveal {
     }
 
     private static bool GetBool(string name, bool orig) =>
-        (Enabled && Array.IndexOf(UnlockBools, name) >= 0) || orig;
+        (Enabled && Array.IndexOf(OwnedMaps, name) >= 0) || orig;
+
+    private static void RevealRooms(GameMap map) {
+        foreach (var (_, room) in MapUtil.Rooms(map, includeInactive: true)) {
+            room.gameObject.SetActive(true);
+            ShowFullSprite(room);
+        }
+    }
+
+    // RoughMapRoom swaps in the full sprite only for mapped rooms and only while becoming active, so a room that
+    // is already active would stay a sketch.
+    private static void ShowFullSprite(SpriteRenderer room) {
+        var rough = room.GetComponent<RoughMapRoom>();
+        if (rough == null || rough.fullSpriteDisplayed || rough.fullSprite == null) return;
+
+        room.sprite = rough.fullSprite;
+        rough.fullSpriteDisplayed = true;
+    }
 
     private static void OnWorldMap(Action<GameMap> orig, GameMap self) {
-        using var unlock = Enabled ? MapUnlock.Begin(UnlockBools) : null;
-        orig(self);
+        using (Enabled ? MapUnlock.Begin(OwnedMaps) : null) orig(self);
 
         try {
-            if (Enabled) self.SetupMap();
+            if (Enabled) RevealRooms(self);
         } catch (Exception e) {
             Logging.Error(e);
         }
     }
 
     private static void OnQuickMap(Action<GameMap> orig, GameMap self) {
-        using var unlock = Enabled ? MapUnlock.Begin(UnlockBools) : null;
-        orig(self);
+        using (Enabled ? MapUnlock.Begin(OwnedMaps) : null) orig(self);
 
         try {
-            if (Enabled) self.SetupMap();
+            if (Enabled) RevealRooms(self);
 
             if (!MapWarpPlugin.Settings.ShowFullMapInQuickmap) return;
 
