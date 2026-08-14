@@ -1,11 +1,14 @@
-<p align="center"><img src="https://raw.githubusercontent.com/jakobhellermann/silksongmod-MapWarp/main/thunderstore/icon.png" alt="MapWarp icon" width="128"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/jakobhellermann/hkmod-MapWarp/main/docs/icon.png" alt="MapWarp icon" width="128"></p>
 
 # MapWarp
 
 Right-click anywhere on the map to warp there, with pan/zoom mouse controls. Plus options to reveal
 the full map, always show compass and outline rooms.
 
-<p align="center"><img src="https://raw.githubusercontent.com/jakobhellermann/silksongmod-MapWarp/main/docs/demo.png" alt="MapWarp demo" width="640"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/jakobhellermann/hkmod-MapWarp/main/docs/demo.png" alt="MapWarp demo" width="640"></p>
+
+> [!TIP]
+> A silksong version is available at <https://github.com/jakobhellermann/silksongmod-MapWarp>
 
 ## Features
 
@@ -15,8 +18,16 @@ the full map, always show compass and outline rooms.
 
 ## Config
 
-Editable in `BepInEx/config/io.github.jakobhellermann.mapwarp.cfg` (or via
-[Configuration Manager](https://thunderstore.io/c/hollow-knight-silksong/p/jakobhellermann/BepInExConfigurationManager/)):
+The config file can be found as `MapWarp.GlobalSettings.json` in
+
+- **Windows:** `%USERPROFILE%/AppData/LocalLow/Team Cherry/Hollow Knight`
+- **macOS:** `~/Library/Application Support/unity.Team Cherry.Hollow Knight`
+- **Linux:** `~/.config/unity3d/Team Cherry/Hollow Knight`
+
+and can also be edited in the Mod Menu.
+
+> [!WARNING]
+> Configuration is currently not support on the 1.2.2.1 build. The default options apply there.
 
 **Teleport**
 

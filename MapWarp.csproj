@@ -24,7 +24,7 @@
         <PathMap Condition="'$(Configuration)' == 'Release'">$(MSBuildProjectDirectory)=/</PathMap>
 
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <RepositoryUrl>https://github.com/jakobhellermann/silksongmod-MapWarp</RepositoryUrl>
+        <RepositoryUrl>https://github.com/jakobhellermann/hkmod-MapWarp</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
