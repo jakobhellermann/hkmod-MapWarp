@@ -31,7 +31,7 @@
         <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.27.0" PrivateAssets="all"/>
     </ItemGroup>
 
-    <!-- 1.2.2.1's API ships no MonoMod. 21.4.29.1 is what the API ships from 1.3.1.5 on. -->
+    <!-- 1.2.2.1's API ships no MonoMod. 21.4.29.1 is what the API ships from 1.3.1.5 on. See ILRepack.targets -->
     <ItemGroup Condition="'$(RepackDependencies)' == 'true'">
         <PackageReference Include="MonoMod.RuntimeDetour" Version="[21.4.29.1]" PrivateAssets="all"/>
         <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.46" PrivateAssets="all"/>
@@ -63,17 +63,6 @@
         <!-- Offline-generated map data for every room (tools/extract_respawns.sh). -->
         <EmbeddedResource Include="data/mapwarp_respawns.bin"/>
     </ItemGroup>
-
-    <Target Name="Repack" AfterTargets="PostBuildEvent" BeforeTargets="CopyMod" Condition="'$(RepackDependencies)' == 'true'">
-        <ItemGroup>
-            <RepackInput Include="$(TargetPath)"/>
-            <RepackInput Include="$(TargetDir)MonoMod.*.dll;$(TargetDir)Mono.Cecil*.dll"/>
-            <RepackSearchDir Include="@(ReferencePath->'%(RootDir)%(Directory)')"/>
-        </ItemGroup>
-        <ILRepack InputAssemblies="@(RepackInput)" OutputFile="$(TargetPath)" LibraryPath="@(RepackSearchDir->Distinct())"
-                  TargetKind="Dll" Internalize="true" Parallel="false"/>
-        <Delete Files="@(RepackInput)" Condition="'%(Identity)' != '$(TargetPath)'"/>
-    </Target>
 
     <Target Name="CopyMod" AfterTargets="PostBuildEvent" Condition="'$(ModsDir)' != '' And Exists('$(ModsDir)')">
         <PropertyGroup>
