@@ -136,7 +136,7 @@ internal static class MapTeleport {
         PlayMakerFSM.BroadcastEvent("BENCH UNSIT");
 
         // Resting slides the HUD out; Get Off slides it back in.
-        var hudCanvas = GameCameras.instance.hudCamera.transform.Find("Anchor TL/Hud Canvas Offset/Hud Canvas");
+        var hudCanvas = GameCompat.FindHudCanvas(GameCameras.instance.hudCamera.transform);
         PlayMakerFSM.FindFsmOnGameObject(hudCanvas.gameObject, "Slide Out")?.SendEvent("IN");
 
         // A same-scene teleport leaves the bench's own FSM sitting in Resting / Map Idle, and closing the quick
