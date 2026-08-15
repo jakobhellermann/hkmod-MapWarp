@@ -7,7 +7,7 @@
         "type": "Direct",
         "requested": "[1.0.0-hollowknight.1.4.3.2.api74hksr, 1.0.0-hollowknight.1.4.3.2.api74hksr]",
         "resolved": "1.0.0-hollowknight.1.4.3.2.api74hksr",
-        "contentHash": "xt20VcK9dt9awNCom4P/DApVo0zkalX5/5b/udSK3Vc08RL0etT/mW4Cex8unsyPar59g347qd+X0vmBkhAJkA=="
+        "contentHash": "ZD6kHUTzmM/gkpgHND3Hw07usyO8z3M9x1QSKA6EhuWv61Xm6TatA+8B+eEyTtpuRkK5jNti+bQEyg50bX9c9w=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -38,7 +38,7 @@
         "type": "Direct",
         "requested": "[1.0.0-hollowknight.1.3.1.5.api74hksr, 1.0.0-hollowknight.1.3.1.5.api74hksr]",
         "resolved": "1.0.0-hollowknight.1.3.1.5.api74hksr",
-        "contentHash": "ZoGG3pDdWO2nFNMdWA1Ewf315GqWssS918ZijFy8o6FIcMsoqKSSAFxS0GJu5IozIHPQ56OgfwbBRwbB3n2E0A=="
+        "contentHash": "L8S3FBhQvfT008InYZBOWvxKgkVVDs8by7rnFY/KFW6XmtYH5yWNOUvJKDZh9pwxilm3mmVoh1Ftta+V3II+5g=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -69,7 +69,7 @@
         "type": "Direct",
         "requested": "[1.0.0-hollowknight.1.2.2.1.api42hksr, 1.0.0-hollowknight.1.2.2.1.api42hksr]",
         "resolved": "1.0.0-hollowknight.1.2.2.1.api42hksr",
-        "contentHash": "fLHnUOJuo5llejGRqIqoCjdXl0LFFq2jQAuy0Olk7z7DAtpe+VlMkKRK1ZH6QV4lZA3zMww0qhEso5VHwYB/7Q=="
+        "contentHash": "QjmqJIoVdgVpu7w9zb1paIFLTu0xJMLx64peau/jDHH4YrT90+kkiUIdglEdwNih9n7eeqTK0iGBJxcJYceXGw=="
       },
       "ILRepack.Lib.MSBuild.Task": {
         "type": "Direct",
@@ -129,7 +129,7 @@
         "type": "Direct",
         "requested": "[1.0.0-hollowknight.1.5.78.11833.api77, 1.0.0-hollowknight.1.5.78.11833.api77]",
         "resolved": "1.0.0-hollowknight.1.5.78.11833.api77",
-        "contentHash": "KGKyoVIjWopaVV6zVS+wcRAtJUjYMk0lmEQWlGcL4GANhDrVDIB0LT+8OJDst8mEYpEKJZWSos5qwYNvk/BJwg=="
+        "contentHash": "e2dMMQpfKoNUSpjs0HTDRrGExN6tkyDUc1z57BbwVsLoUequBUOiVfiB1+fJ2PlSubISnzRaCVqpH08HwnTK3w=="
       },
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -160,7 +160,7 @@
         "type": "Direct",
         "requested": "[1.0.0-hollowknight.1.5.12620.api78, 1.0.0-hollowknight.1.5.12620.api78]",
         "resolved": "1.0.0-hollowknight.1.5.12620.api78",
-        "contentHash": "Og++oWCDClh97LA609BZ1Wgd68FKq3tcPJal8Ej/kHFEBEfNW9bZlYN3a06zoALYLl2kyUNeRSaIe1JXR1p5Uw=="
+        "contentHash": "GNsoBlypZIx2beH/UA4y8h/zCdgumESkDtiZ4QoPz/2RQ80M984zlQDdv/VhLJ7hDOAUs7lpran56qNNMHvDfA=="
       },
       "Microsoft.Unity.Analyzers": {
         "type": "Direct",
