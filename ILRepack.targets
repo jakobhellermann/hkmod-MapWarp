@@ -1,0 +1,12 @@
+<Project>
+    <Target Name="Repack" AfterTargets="PostBuildEvent" BeforeTargets="CopyMod" Condition="'$(RepackDependencies)' == 'true'">
+        <ItemGroup>
+            <RepackInput Include="$(TargetPath)"/>
+            <RepackInput Include="$(TargetDir)MonoMod.*.dll;$(TargetDir)Mono.Cecil*.dll"/>
+            <RepackSearchDir Include="@(ReferencePath->'%(RootDir)%(Directory)')"/>
+        </ItemGroup>
+        <ILRepack InputAssemblies="@(RepackInput)" OutputFile="$(TargetPath)" LibraryPath="@(RepackSearchDir->Distinct())"
+                  TargetKind="Dll" Internalize="true" Parallel="false"/>
+        <Delete Files="@(RepackInput)" Condition="'%(Identity)' != '$(TargetPath)'"/>
+    </Target>
+</Project>
