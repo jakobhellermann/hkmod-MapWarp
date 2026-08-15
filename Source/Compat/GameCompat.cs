@@ -21,6 +21,14 @@ internal static class GameCompat {
 #endif
     }
 
+    /// 1.5.12620 moved the HUD canvas under an anchor/offset pair; before that it hangs directly under the camera.
+    internal static Transform FindHudCanvas(Transform hudCamera) =>
+#if HK1512620
+        hudCamera.Find("Anchor TL/Hud Canvas Offset/Hud Canvas");
+#else
+        hudCamera.Find("Hud Canvas");
+#endif
+
     internal static void BeginDreamGateTransition(GameManager gm, string targetScene) {
 #if HK1221
         // 1.2.2.1 has no SceneLoadInfo; ChangeToScene is what WarpToDreamGate itself goes through.
