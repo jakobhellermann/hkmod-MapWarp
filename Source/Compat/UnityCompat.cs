@@ -5,7 +5,6 @@ using Object = UnityEngine.Object;
 
 namespace MapWarp.Source.Compat;
 
-/// https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Object.FindObjectsByType.html
 internal static class UnityCompat {
     internal static T[] FindAll<T>(bool includeInactive = false) where T : Object =>
 #if HK1512620

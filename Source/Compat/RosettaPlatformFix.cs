@@ -1,5 +1,7 @@
+#if !HK1512620
 using System;
 using System.Runtime.InteropServices;
+#endif
 
 namespace MapWarp.Source.Compat;
 

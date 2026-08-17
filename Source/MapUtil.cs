@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using MapWarp.Source.Compat;
 
 namespace MapWarp.Source;
 
 internal static class MapUtil {
-    // OnGUI works in physical pixels, so fixed font sizes shrink on high-resolution screens. Scale everything
-    // against the resolution the sizes were picked at.
+    // Consistent scale on high resolution screens
     private const float ReferenceHeight = 1200f;
 
     internal static float GuiScale => Screen.height / ReferenceHeight;
@@ -16,8 +16,6 @@ internal static class MapUtil {
         map.areaQueensGardens, map.areaRestingGrounds, map.areaDirtmouth, map.areaWaterways
     ];
 
-    // The GameMap object itself stays active while no map is shown; the game toggles the area objects
-    // (WorldMap / QuickMap* activate them, CloseQuickMap deactivates all).
     internal static bool AnyAreaActive(GameMap map) {
         foreach (var area in Areas(map))
             if (area.activeInHierarchy)
@@ -25,16 +23,35 @@ internal static class MapUtil {
         return false;
     }
 
-    // Map rooms are the direct children of the area objects, named after their scene (see GameMap.PositionCompass).
-    internal static IEnumerable<(string name, SpriteRenderer sr)> Rooms(GameMap map, bool includeInactive) {
+    // Direct sprite children of the area objects: the rooms, named after their scene, plus extra sprite
+    // pieces of multi-sprite rooms ("Crossroads_04_b", "Ruins1_31_top").
+    internal static IEnumerable<(string name, SpriteRenderer sr)> RoomSprites(GameMap map, bool includeInactive) {
         foreach (var area in Areas(map)) {
             if (!includeInactive && !area.activeInHierarchy) continue;
             foreach (Transform room in area.transform) {
                 if (!includeInactive && !room.gameObject.activeInHierarchy) continue;
-                var sr = room.GetComponent<SpriteRenderer>();
-                if (sr != null) yield return (room.name, sr);
+                if (room.TryGetComponent<SpriteRenderer>(out var spriteRenderer)) {
+                    yield return (room.name, spriteRenderer);
+                }
             }
         }
+    }
+
+    // Only the rooms that are loadable scenes.
+    internal static IEnumerable<(string name, SpriteRenderer sr)> Rooms(GameMap map, bool includeInactive) {
+        foreach (var entry in RoomSprites(map, includeInactive))
+            if (UnityCompat.IsLoadableScene(entry.name))
+                yield return entry;
+    }
+
+    internal static Color AreaTint(GameMap? map, string sceneName) {
+        if (map == null) return Color.white;
+
+        foreach (var (name, sr) in Rooms(map, includeInactive: true))
+            if (name == sceneName)
+                return sr.color with { a = 1f };
+        
+        return Color.white;
     }
 
     // The on-screen rectangle the map render occupies. The game renders at cam.aspect into a texture shown
@@ -51,14 +68,14 @@ internal static class MapUtil {
         return (0f, (sh - dh) * 0.5f, sw, dh);
     }
 
-    // Camera viewport point (0..1, bottom-left) to on-screen pixels (bottom-left origin), letterbox-corrected.
-    internal static Vector2 ViewportToScreen(Camera cam, Vector3 vp) {
+    // Camera viewport point (0..1, bottom-left) to on-screen pixels (bottom-left origin)
+    private static Vector2 ViewportToScreen(Camera cam, Vector3 vp) {
         var (dx, dy, dw, dh) = MapRect(cam);
         return new Vector2(dx + vp.x * dw, dy + vp.y * dh);
     }
 
-    // World point to on-screen pixels (bottom-left), for hit-testing against Input.mousePosition.
-    // cam.WorldToScreenPoint would return render-texture pixels — wrong under letterboxing / render scale.
+    // World point to on-screen pixels (bottom-left origin). cam.WorldToScreenPoint would return
+    // render-texture pixels, wrong under letterboxing / render scale.
     internal static Vector2 WorldToScreen(Camera cam, Vector3 world) =>
         ViewportToScreen(cam, cam.WorldToViewportPoint(world));
 

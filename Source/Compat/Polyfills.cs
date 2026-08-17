@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+
 // ReSharper disable CheckNamespace
 
 #if !NETSTANDARD2_1
@@ -63,14 +63,17 @@ namespace System.Runtime.CompilerServices {
     }
 }
 
-namespace UnityEngine {
-    using System;
+#endif
 
-    // https://docs.unity3d.com/ScriptReference/DefaultExecutionOrder.html
-    // Unity 5.4 cannot set execution order from code, so this is inert and ordering stays arbitrary.
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class DefaultExecutionOrderAttribute(int order) : Attribute {
-        public int order { get; } = order;
+// TryGetComponent arrived in Unity 2019.2; 1.5.78 (2020.2) and newer ship it.
+#if HK1221 || HK1315 || HK1432
+namespace UnityEngine {
+    // https://docs.unity3d.com/ScriptReference/Component.TryGetComponent.html
+    internal static class ComponentPolyfill {
+        public static bool TryGetComponent<T>(this Component self, out T component) where T : Component {
+            component = self.GetComponent<T>();
+            return component != null;
+        }
     }
 }
 #endif

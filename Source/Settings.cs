@@ -1,6 +1,6 @@
 namespace MapWarp.Source;
 
-// Persisted as MapWarp.GlobalSettings.json next to the save files.
+// Global mod settings
 public class Settings {
     public bool EnableTeleport = true;
     public bool ShowRespawnPoints = true;

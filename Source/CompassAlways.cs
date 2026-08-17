@@ -1,6 +1,4 @@
 using System;
-using Modding;
-
 using MapWarp.Source.Compat;
 
 namespace MapWarp.Source;

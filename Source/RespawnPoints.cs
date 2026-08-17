@@ -6,9 +6,8 @@ using UnityEngine;
 
 namespace MapWarp.Source;
 
-// Safe respawn points per scene, normalized as (pos + offset) / size within the rect the map maps the scene onto.
-// The rect is stored rather than read at runtime, where the game only holds it for the scene the hero is in.
-// Generated offline and embedded as `mapwarp_respawns.bin` (see `tools/extract_respawns.sh`).
+// Safe respawn points per scene, normalized to the map rect.
+// Generated offline (see `tools/extract_respawns.sh`).
 internal static class RespawnPoints {
     private const string ResourceName = "mapwarp_respawns.bin";
 
@@ -46,12 +45,10 @@ internal static class RespawnPoints {
             points += pointCount;
         }
 
-        // A truncated or overlong resource would otherwise surface as silently missing rooms.
         if (stream.Position != stream.Length)
             throw new InvalidOperationException(
                 $"{ResourceName}: read {stream.Position} of {stream.Length} bytes after {sceneCount} scenes");
 
-        Logging.Info($"Respawn points: {result.Count} embedded scenes, {points} points");
         return result;
     }
 

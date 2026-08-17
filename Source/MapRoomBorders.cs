@@ -1,93 +1,66 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-
-using MapWarp.Source.Compat;
 
 namespace MapWarp.Source;
 
-[RequireComponent(typeof(Camera))]
-public class MapRoomBorders : MonoBehaviour {
-    private static MapRoomBorders? active;
-
-    private Camera cam = null!;
-
-    private GameMap? gameMap;
-    private Material mat = null!;
-    private (string name, SpriteRenderer sr)[]? scenes;
-
-    // A fixed, generously-sized rect for each room label — see OnGUI for why we don't fit it with CalcSize.
+internal static class MapRoomBorders {
     private const float LabelWidth = 220f;
     private const float LabelHeight = 22f;
 
-    private GUIStyle? labelStyle;
-    private float labelStyleScale;
+    private static Material? mat;
+    private static (string name, SpriteRenderer sr)[]? scenes;
 
-    private void Awake() {
-        cam = GetComponent<Camera>();
-        mat = new Material(Shader.Find("Hidden/Internal-Colored")) {
-            hideFlags = HideFlags.HideAndDontSave
-        };
+    private static GUIStyle? labelStyle;
+    private static float labelStyleScale;
+
+    internal static void Rebuild() {
+        if (!mat) mat = new Material(Shader.Find("Hidden/Internal-Colored")) { hideFlags = HideFlags.HideAndDontSave };
+
+        var gameMap = MapLifecycle.Current;
+        if (gameMap == null) {
+            scenes = null;
+            return;
+        }
+
+        scenes = [..MapUtil.Rooms(gameMap, includeInactive: true)];
     }
 
-    private void OnEnable() {
-        gameMap = UnityCompat.FindFirst<GameMap>();
-        if (gameMap == null) return;
-
-        var list = new List<(string, SpriteRenderer)>();
-        foreach (var (name, sr) in MapUtil.Rooms(gameMap, true))
-            if (MapTeleport.IsLoadableScene(name))
-                list.Add((name, sr));
-
-        scenes = list.ToArray();
-        active = this;
+    internal static void Cleanup() {
+        scenes = null;
+        if (mat) Object.Destroy(mat);
+        mat = null;
     }
 
-    private void OnDestroy() {
-        if (active == this) active = null;
-        Destroy(mat);
-    }
+    internal static void DrawLabels(Camera cam) {
+        if (!MapWarpPlugin.Settings.ShowRoomBorders) return;
+        if (scenes == null) return;
 
-    private void OnGUI() {
-        try {
-            if (!MapWarpPlugin.Settings.ShowRoomBorders) return;
-            if (scenes == null) return;
+        var scale = MapUtil.GuiScale;
+        if (labelStyle == null || !Mathf.Approximately(labelStyleScale, scale)) {
+            labelStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(12 * scale) };
+            labelStyleScale = scale;
+        }
 
-            var scale = MapUtil.GuiScale;
-            if (labelStyle == null || !Mathf.Approximately(labelStyleScale, scale)) {
-                labelStyle = new GUIStyle(GUI.skin.label) { fontSize = Mathf.RoundToInt(12 * scale) };
-                labelStyleScale = scale;
-            }
+        // Only label rooms when zoomed in at least to the default view; hide the clutter when zoomed out.
+        var map = MapLifecycle.Current;
+        if (map != null && map.transform.localScale.x < MapPanZoom.DefaultMapScale) return;
 
-            // Only label rooms when zoomed in at least to the default view; hide the clutter when zoomed out.
-            if (MapTeleport.Current is { } m && m.transform.localScale.x < MapNavigation.DefaultMapScale) return;
-
-            foreach (var (name, sr) in scenes) {
-                // Only rooms the map is actually showing — with "full map in quickmap" off the game leaves other
-                // zones' rooms inactive, so this keeps the overlay in sync instead of boxing every room.
-                if (!sr.gameObject.activeInHierarchy) continue;
-                // Draw the label whenever the box overlaps the screen (same test as the box in OnPostRender),
-                // not only when the room center is on-screen — otherwise labels pop in/out while panning.
-                if (!OnScreen(sr.bounds)) continue;
-                // Label at the room's top-left corner, letterbox-corrected (see MapUtil.WorldToGui). GUI.Label
-                // clips to its rect and CalcSize under-measures the width by ~1px — enough to cut a trailing wide
-                // glyph (the 'b' of "Tut_01b" rendered as "Tut_01"). So skip the tight fit and hand it a
-                // generously wide rect; the unused space is invisible. Pinned on-screen so it stays while panning.
-                var guiPos = MapUtil.WorldToGui(cam,
-                    new Vector3(sr.bounds.min.x, sr.bounds.max.y, sr.bounds.center.z));
-                float w = LabelWidth * scale, h = LabelHeight * scale;
-                var x = Mathf.Clamp(guiPos.x, 0f, Screen.width - w);
-                var y = Mathf.Clamp(guiPos.y, 0f, Screen.height - h);
-                GUI.Label(new Rect(x, y, w, h), name, labelStyle);
-            }
-        } catch (Exception e) {
-            Logging.Error(e);
+        foreach (var (name, sr) in scenes) {
+            // Only rooms the map is actually showing - with "full map in quickmap" off the game leaves other
+            // zones' rooms inactive, so this keeps the overlay in sync instead of boxing every room.
+            if (!sr.gameObject.activeInHierarchy) continue;
+            if (!OnScreen(cam, sr.bounds)) continue;
+            var guiPos = MapUtil.WorldToGui(cam,
+                new Vector3(sr.bounds.min.x, sr.bounds.max.y, sr.bounds.center.z));
+            float w = LabelWidth * scale, h = LabelHeight * scale;
+            var x = Mathf.Clamp(guiPos.x, 0f, Screen.width - w);
+            var y = Mathf.Clamp(guiPos.y, 0f, Screen.height - h);
+            GUI.Label(new Rect(x, y, w, h), name, labelStyle);
         }
     }
 
-    private void OnPostRender() {
+    internal static void DrawBorders(Camera cam) {
         if (!MapWarpPlugin.Settings.ShowRoomBorders) return;
-        if (scenes == null || scenes.Length == 0) return;
+        if (scenes == null || scenes.Length == 0 || mat == null) return;
 
         GL.PushMatrix();
         try {
@@ -98,15 +71,13 @@ public class MapRoomBorders : MonoBehaviour {
             try {
                 foreach (var (name, sr) in scenes) {
                     if (!sr.gameObject.activeInHierarchy) continue;
-                    if (!OnScreen(sr.bounds)) continue;
+                    if (!OnScreen(cam, sr.bounds)) continue;
                     var min = MapUtil.WorldToOrtho(cam, sr.bounds.min);
                     var max = MapUtil.WorldToOrtho(cam, sr.bounds.max);
                     var hue = Mathf.Abs(name.GetHashCode()) % 1000 / 1000f;
                     GL.Color(Color.HSVToRGB(hue, 0.6f, 1f) with { a = 0.8f });
                     DrawRect(min.x, min.y, max.x, max.y);
                 }
-            } catch (Exception e) {
-                Logging.Error(e);
             } finally {
                 GL.End();
             }
@@ -115,18 +86,7 @@ public class MapRoomBorders : MonoBehaviour {
         }
     }
 
-    // The map room's own sprite tint = HollowKnight's authored area colouring. Used by MapNavigation to colour the
-    // hover preview label to match the area it points at. Falls back to white when the room isn't found (map
-    // not built yet / non-loadable scene). Alpha forced opaque since the sprite may be mid-fade.
-    internal static Color AreaTint(string sceneName) {
-        if (active != null && active.scenes != null)
-            foreach (var (name, sr) in active.scenes)
-                if (name == sceneName)
-                    return sr.color with { a = 1f };
-        return Color.white;
-    }
-
-    private bool OnScreen(Bounds b) {
+    private static bool OnScreen(Camera cam, Bounds b) {
         var min = MapUtil.WorldToOrtho(cam, b.min);
         var max = MapUtil.WorldToOrtho(cam, b.max);
         return max.x >= 0 && min.x <= 1 && max.y >= 0 && min.y <= 1;
@@ -141,14 +101,5 @@ public class MapRoomBorders : MonoBehaviour {
         GL.Vertex3(x0, y1, 0);
         GL.Vertex3(x0, y1, 0);
         GL.Vertex3(x0, y0, 0);
-    }
-
-    public static void Install() {
-        foreach (var old in UnityCompat.FindAll<MapRoomBorders>(includeInactive: true))
-            Destroy(old);
-        var cam = GameCameras.instance != null ? GameCameras.instance.hudCamera : null;
-        if (cam == null) return;
-        cam.gameObject.AddComponent<MapRoomBorders>();
-        MapNavigation.Install();
     }
 }

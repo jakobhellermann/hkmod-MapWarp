@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 using MapWarp.Source.Compat;
@@ -8,10 +9,7 @@ namespace MapWarp.Source;
 internal static class MapReveal {
     private static bool Enabled => MapWarpPlugin.Settings.UnlockEntireMap;
 
-    // Claiming the zone maps is the feature, and nothing outside the map UI reads these. hasQuill and mapAllRooms
-    // are deliberately absent: the bench FSM tests hasQuill before calling SetupMap, and mapAllRooms drops
-    // SetupMap's name filter so it walks into the placed map markers. RevealRooms does what those two bought us.
-    private static readonly string[] OwnedMaps = [
+    private static readonly string[] ownedMaps = [
         "hasMap",
         "mapAbyss", "mapCity", "mapCliffs", "mapCrossroads", "mapDeepnest", "mapFogCanyon",
         "mapFungalWastes", "mapGreenpath", "mapMines", "mapOutskirts", "mapRestingGrounds",
@@ -31,10 +29,11 @@ internal static class MapReveal {
     }
 
     private static bool GetBool(string name, bool orig) =>
-        (Enabled && Array.IndexOf(OwnedMaps, name) >= 0) || orig;
+        (Enabled && ownedMaps.Contains(name)) || orig;
 
+    // Includes the extra sprite pieces of multi-sprite rooms, which need revealing too.
     private static void RevealRooms(GameMap map) {
-        foreach (var (_, room) in MapUtil.Rooms(map, includeInactive: true)) {
+        foreach (var (_, room) in MapUtil.RoomSprites(map, includeInactive: true)) {
             room.gameObject.SetActive(true);
             ShowFullSprite(room);
         }
@@ -51,7 +50,7 @@ internal static class MapReveal {
     }
 
     private static void OnWorldMap(Action<GameMap> orig, GameMap self) {
-        using (Enabled ? MapUnlock.Begin(OwnedMaps) : null) orig(self);
+        using (Enabled ? MapUnlock.Begin(ownedMaps) : null) orig(self);
 
         try {
             if (Enabled) RevealRooms(self);
@@ -61,7 +60,7 @@ internal static class MapReveal {
     }
 
     private static void OnQuickMap(Action<GameMap> orig, GameMap self) {
-        using (Enabled ? MapUnlock.Begin(OwnedMaps) : null) orig(self);
+        using (Enabled ? MapUnlock.Begin(ownedMaps) : null) orig(self);
 
         try {
             if (Enabled) RevealRooms(self);

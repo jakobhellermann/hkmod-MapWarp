@@ -1,107 +1,67 @@
-using System;
 using System.Collections.Generic;
 using MapWarp.Source.Toasts;
-using GlobalEnums;
-using Modding;
-using System.IO;
 using UnityEngine;
-using Object = UnityEngine.Object;
-
 using MapWarp.Source.Compat;
 
 namespace MapWarp.Source;
 
 internal static class MapTeleport {
     internal static void Install() {
-        Hooks.Add(typeof(GameMap), "Update", (Action<Action<GameMap>, GameMap>)GameMapUpdate);
         HeroSceneEntry.OnPositioned(OnHeroPositioned);
         HeroSceneEntry.OnEntered(OnSceneEntered);
     }
 
-    // Cross-scene teleports go through a "dreamGate" transition, so the click's target is stashed here and turned
-    // into a world position once the destination scene is up.
+    // Set on teleport, read after the "dreamGate" transition
     private static string? pendingScene;
     private static Vector2 pendingNormalized;
 
-    // Safe hazard-respawn the last PlaceHero applied (null if no safe spot was found). For a cross-scene teleport
-    // OnHeroPositioned promotes this into pendingReapplyRespawn so it can be re-applied after
-    // FinishedEnteringScene re-anchors the respawn to the hero's landing position (see OnSceneEntered).
+    // Safe hazard-respawn the last PlaceHero applied, null if no safe spot was found (see OnSceneEntered).
     private static (Vector3 pos, bool facingRight)? lastSafeRespawn;
     private static (Vector3 pos, bool facingRight)? pendingReapplyRespawn;
 
-    // The room (loadable scene) currently under the cursor, updated every frame the map is open and drawn next
-    // to the cursor by MapNavigation.OnGUI. Null when no map is open / no room is hovered.
     internal static string? PreviewRoom;
 
-    // Every loadable room whose box currently contains the cursor, with its map-sprite bounds — usually one, but
-    // several where room boxes overlap. MapNavigation draws the respawn points of all of them (not just the
-    // selected room), so you can see every safe spot at an overlap. Reused list, refilled each frame.
-    internal static readonly List<(string room, Bounds bounds)> PreviewCandidates = new();
+    // Every loadable room whose box currently contains the cursor (sometimes there's overlap)
+    internal static readonly List<(string room, Bounds bounds)> PreviewCandidates = [];
 
-    internal static bool IsLoadableScene(string sceneName) => UnityCompat.IsLoadableScene(sceneName);
-
-    // The live GameMap, refreshed each frame from its own Update; read by MapNavigation.
-    internal static GameMap? Current;
-
-    private static void GameMapUpdate(Action<GameMap> orig, GameMap self) {
-        orig(self);
-
-        // Runs every frame on the game's GameMap.Update — guard so an exception can't break it.
-        try {
-            Current = self;
-            HandleMap(self);
-        } catch (Exception e) {
-            ClearPreview();
-            Logging.Error(e);
-        }
-    }
-
-    // Reset the per-frame cursor preview state (no map open / no room hovered).
-    private static void ClearPreview() {
+    internal static void ClearPreview() {
         PreviewRoom = null;
         PreviewCandidates.Clear();
     }
 
-    private static void HandleMap(GameMap gameMap) {
+    internal static void HandleMap(GameMap gameMap) {
         if (!MapWarpPlugin.Settings.EnableTeleport) {
-            ClearPreview();
-            return;
-        }
-
-        // The GameMap object stays active while no map is shown, so the active areas gate "a map is open".
-        if (!MapUtil.AnyAreaActive(gameMap)) {
             ClearPreview();
             return;
         }
 
         var mapCam = GameCameras.instance.hudCamera;
 
-        var gm = GameManager.instance;
-        var hasRoom = TryGetRoomUnderCursor(mapCam, out var best, out var normalized);
+        var hasRoom = TryGetRoomUnderCursor(gameMap, mapCam, out var best, out var normalized);
 
-        // Update the cursor preview every frame (drawn by MapNavigation.OnGUI).
         PreviewRoom = hasRoom ? best : null;
 
-        // Left mouse is used for drag-panning (MapNavigation), so teleport is bound to a discrete right-click.
-        if (!Input.GetMouseButtonDown(1)) return;
+        // Left click drag, right click TP
+        if (Input.GetMouseButtonDown(1)) {
+            if (!hasRoom) {
+                ToastManager.Toast("No room under cursor");
+                return;
+            }
 
-
-        if (!hasRoom) {
-            ToastManager.Toast("No room under cursor");
-            return;
+            DoTeleport(best, normalized);
         }
+    }
 
+    private static void DoTeleport(string targetScene, Vector2 normalized) {
         LeaveBench();
+        CloseInventoryMap();
 
-        var targetScene = best;
+        var gm = GameManager.instance;
         if (targetScene == gm.sceneName) {
-            CloseInventoryMap();
             PlaceHero(RespawnPoints.ToWorld(targetScene, normalized));
             ResumeGameplay();
             return;
         }
-
-        CloseInventoryMap();
 
         pendingScene = targetScene;
         pendingNormalized = normalized;
@@ -112,16 +72,13 @@ internal static class MapTeleport {
         GameCompat.EndInventoryPause();
     }
 
-    // Nothing gets the hero off a bench when we warp him away from it: the bench is scene-local, so its
-    // Bench Control FSM dies with the scene. Driving that FSM instead is not an option either — its Get Off
-    // path spans several frames and its Game Paused? state cancels back to Resting while the inventory is
-    // still open. So replicate Get Off / Idle Pause / Regain Control here.
+    // Re-implementation of bench leaving, without unnecessary delays.
     private static void LeaveBench() {
         var pd = PlayerData.instance;
-        if (!pd.GetBool("atBench")) return;
+        if (!pd.atBench) return;
 
-        pd.SetBool("atBench", false);
-        pd.SetBool("disablePause", false);
+        pd.atBench = false;
+        pd.disablePause = false;
 
         var hero = HeroController.instance;
         hero.GetComponent<Rigidbody2D>().MakeDynamic();
@@ -131,37 +88,33 @@ internal static class MapTeleport {
         hero.RegainControl();
         hero.StartAnimationControl();
 
-        // Companions (Grimmchild, Weaverling, Knight Hatchling) and the bench's own sit animation listen for these.
+        // For companions (Grimmchild, etc.)
         PlayMakerFSM.BroadcastEvent("BENCHREST END");
         PlayMakerFSM.BroadcastEvent("BENCH UNSIT");
 
-        // Resting slides the HUD out; Get Off slides it back in.
         var hudCanvas = GameCompat.FindHudCanvas(GameCameras.instance.hudCamera.transform);
-        PlayMakerFSM.FindFsmOnGameObject(hudCanvas.gameObject, "Slide Out")?.SendEvent("IN");
+        PlayMakerFSM.FindFsmOnGameObject(hudCanvas.gameObject, "Slide Out").SendEvent("IN");
 
-        // A same-scene teleport leaves the bench's own FSM sitting in Resting / Map Idle, and closing the quick
-        // map afterwards walks it back into Resting, which re-sets atBench. Park it in the state Get Off would
-        // have reached: Reactivate restores the bench particles and falls through to Idle.
         foreach (var fsm in UnityCompat.FindAll<PlayMakerFSM>())
             if (fsm.FsmName == "Bench Control" && fsm.ActiveStateName != "Idle")
                 fsm.SetState("Reactivate");
     }
 
     private static void CloseInventoryMap() {
-        if (GameCameras.instance == null) return;
+        if (!GameCameras.instance) return;
         var hud = GameCameras.instance.hudCamera.transform;
 
         var quickMap = hud.Find("Quick Map");
-        if (quickMap != null)
-            PlayMakerFSM.FindFsmOnGameObject(quickMap.gameObject, "Quick Map")?.SendEvent("CLOSE QUICK MAP");
+        if (quickMap)
+            PlayMakerFSM.FindFsmOnGameObject(quickMap.gameObject, "Quick Map").SendEvent("CLOSE QUICK MAP");
 
         var inventory = hud.Find("Inventory");
-        if (inventory == null) return;
+        if (!inventory) return;
 
         // Zoomed into a scene map, the game closes via the World Map's own INVENTORY CANCEL state, which
         // restores the wide map pose before forwarding CLOSE to the inventory.
         var worldMap = inventory.Find("Map/World Map");
-        if (worldMap != null &&
+        if (worldMap &&
             PlayMakerFSM.FindFsmOnGameObject(worldMap.gameObject, "UI Control") is
                 { ActiveStateName: "Zoomed In" } uiControl) {
             uiControl.SendEvent("INVENTORY CANCEL");
@@ -176,10 +129,7 @@ internal static class MapTeleport {
         }
     }
 
-    // Map room whose on-screen sprite bounds contain the cursor; when several overlap, the one whose nearest
-    // respawn point is closest to the cursor wins (see SceneCursorScore). Also returns the cursor's normalized
-    // [0,1] position within that room.
-    private static bool TryGetRoomUnderCursor(Camera mapCam, out string best, out Vector2 normalized) {
+    private static bool TryGetRoomUnderCursor(GameMap gameMap, Camera mapCam, out string best, out Vector2 normalized) {
         best = null!;
         normalized = default;
         PreviewCandidates.Clear();
@@ -187,25 +137,19 @@ internal static class MapTeleport {
         var bestDist = float.MaxValue;
         Bounds bestBounds = default;
 
-        foreach (var (name, sr) in MapUtil.Rooms(Current!, false)) {
-            if (sr.sprite == null) continue;
+        foreach (var (name, sr) in MapUtil.Rooms(gameMap, false)) {
+            if (!sr.sprite) continue;
 
-            // Letterbox-corrected on-screen pixels (bottom-left, matching Input.mousePosition) — plain
-            // WorldToScreenPoint returns render-texture pixels and misaligns under black bars (see MapUtil).
-            var smin = MapUtil.WorldToScreen(mapCam, sr.bounds.min);
-            var smax = MapUtil.WorldToScreen(mapCam, sr.bounds.max);
-            float xMin = Mathf.Min(smin.x, smax.x), xMax = Mathf.Max(smin.x, smax.x);
-            float yMin = Mathf.Min(smin.y, smax.y), yMax = Mathf.Max(smin.y, smax.y);
+            var screenMin = MapUtil.WorldToScreen(mapCam, sr.bounds.min);
+            var screenMax = MapUtil.WorldToScreen(mapCam, sr.bounds.max);
+            float xMin = Mathf.Min(screenMin.x, screenMax.x), xMax = Mathf.Max(screenMin.x, screenMax.x);
+            float yMin = Mathf.Min(screenMin.y, screenMax.y), yMax = Mathf.Max(screenMin.y, screenMax.y);
 
             if (mouse.x < xMin || mouse.x > xMax) continue;
             if (mouse.y < yMin || mouse.y > yMax) continue;
 
-            // Room objects that aren't loadable scenes themselves (area labels, pin containers) aren't targets.
-            if (!IsLoadableScene(name)) continue;
-
             PreviewCandidates.Add((name, sr.bounds));
 
-            // Among overlapping matches, pick the one whose content is nearest the cursor (SceneCursorScore).
             var dist = SceneCursorScore(mapCam, name, sr.bounds, mouse);
             if (dist < bestDist) {
                 bestDist = dist;
@@ -217,18 +161,16 @@ internal static class MapTeleport {
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (bestDist == float.MaxValue) return false;
 
-        var bsmin = MapUtil.WorldToScreen(mapCam, bestBounds.min);
-        var bsmax = MapUtil.WorldToScreen(mapCam, bestBounds.max);
+        var bestScreenMin = MapUtil.WorldToScreen(mapCam, bestBounds.min);
+        var bestScreenMax = MapUtil.WorldToScreen(mapCam, bestBounds.max);
         normalized = new Vector2(
-            Mathf.Clamp01((mouse.x - bsmin.x) / (bsmax.x - bsmin.x)),
-            Mathf.Clamp01((mouse.y - bsmin.y) / (bsmax.y - bsmin.y)));
+            Mathf.Clamp01((mouse.x - bestScreenMin.x) / (bestScreenMax.x - bestScreenMin.x)),
+            Mathf.Clamp01((mouse.y - bestScreenMin.y) / (bestScreenMax.y - bestScreenMin.y)));
         return true;
     }
 
-    // Screen-space (squared) distance from the cursor to the scene's nearest respawn point — concrete in-room
-    // locations, so a smaller value means the cursor is over that scene's actual content. This disambiguates
-    // overlapping room boxes better than the box center. Falls back to the box-center distance for scenes with
-    // no respawn points; both are screen-pixel sqrMagnitudes, so they're comparable across scenes.
+    // Squared screen-pixel distance from the cursor to the scene's nearest respawn point; disambiguates
+    // overlapping room boxes better than the box center, which is the fallback for scenes without points.
     private static float SceneCursorScore(Camera mapCam, string scene, Bounds worldBounds, Vector2 mouse) {
         var points = RespawnPoints.Get(scene);
         if (points == null || points.Count == 0)
@@ -252,17 +194,13 @@ internal static class MapTeleport {
         pendingScene = null;
         PlaceHero(RespawnPoints.ToWorld(scene, pendingNormalized));
 
-        // A cross-scene teleport still runs FinishedEnteringScene after this, which re-anchors the hazard respawn to
-        // the hero's (possibly hazardous) landing position because it can't resolve the "dreamGate" entry gate.
-        // Queue the safe spot to be re-applied after that (OnSceneEntered).
+        // FinishedEnteringScene still runs after this and re-anchors the hazard respawn; queue the safe spot
+        // for OnSceneEntered.
         pendingReapplyRespawn = lastSafeRespawn;
     }
 
-    // Re-apply the safe hazard respawn after a cross-scene teleport. FinishedEnteringScene (run after
-    // the hero was positioned) sets the respawn to the hero's landing position when the entry gate is
-    // unresolved ("dreamGate"); if that landing is inside a hazard, the accepted single death would respawn back
-    // into it and loop, each respawn forcing a full blocking GC → the game grinds to ~1 fps. Overriding it here
-    // (postfix, so after that assignment) points the respawn at a known-safe spot instead.
+    // FinishedEnteringScene can't resolve the "dreamGate" gate and anchors the hazard respawn at the landing
+    // position; landing inside a hazard would then respawn-loop. Postfix, so this wins.
     private static void OnSceneEntered(HeroController self) {
         if (pendingReapplyRespawn is not { } respawn) return;
         pendingReapplyRespawn = null;
@@ -270,14 +208,10 @@ internal static class MapTeleport {
         ResumeGameplay();
     }
 
-    // Place the hero for a teleport: snap to the nearest guaranteed-safe spot (a transition point or
-    // hazard-respawn marker) near the target, or ground-snap the target when the scene has none.
     private static void PlaceHero(Vector2 target) {
         var hasSafeSpot = TryFindNearestSafeSpot(target, out var safeSpot);
 
-        // Anchor the hazard-respawn location to a known-safe spot before the hero can touch anything lethal, so a
-        // hazard death recovers after one respawn instead of looping (see OnSceneEntered for why a
-        // cross-scene teleport also needs a re-apply after FinishedEnteringScene).
+        // Anchor the hazard respawn before the hero can touch anything lethal (see OnSceneEntered).
         var hero = HeroController.instance;
         if (hasSafeSpot) {
             hero.SetHazardRespawn(safeSpot, hero.cState.facingRight);
@@ -286,15 +220,11 @@ internal static class MapTeleport {
             lastSafeRespawn = null;
         }
 
-        // A raw normalized position almost always lands inside terrain. FindGroundPoint is the game's own
-        // ground-snap: it raycasts down onto the terrain and accounts for the hero's collider height.
-        // useExtended searches the full scene height, so the click drops onto the floor beneath it.
+        // Vanilla chooses the ground point as well
         var ground = hero.FindGroundPoint(hasSafeSpot ? safeSpot : target, true);
         hero.transform.position = new Vector3(ground.x, ground.y, hero.transform.position.z);
     }
 
-    // Nearest transition / hazard-respawn marker to `target`, in the currently loaded scene — both are spots
-    // the game itself spawns the hero at, so they're always on safe ground.
     private static bool TryFindNearestSafeSpot(Vector2 target, out Vector3 safeSpot) {
         var bestDist = float.MaxValue;
         safeSpot = Vector3.zero;
@@ -306,7 +236,7 @@ internal static class MapTeleport {
         }
 
         foreach (var tp in UnityCompat.FindAll<TransitionPoint>()) {
-            var pos = tp.respawnMarker != null ? tp.respawnMarker.transform.position : tp.transform.position;
+            var pos = tp.respawnMarker ? tp.respawnMarker.transform.position : tp.transform.position;
             var d = ((Vector2)pos - target).sqrMagnitude;
             if (d < bestDist) (bestDist, safeSpot, found) = (d, pos, true);
         }
