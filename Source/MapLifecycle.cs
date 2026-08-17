@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 
-using MapWarp.Source.Compat;
+using MapWarp.Compat;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class MapLifecycle {
     internal static GameMap? Current;

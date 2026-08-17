@@ -1,7 +1,7 @@
 using GlobalEnums;
 using UnityEngine;
 
-namespace MapWarp.Source.Compat;
+namespace MapWarp.Compat;
 
 internal static class GameCompat {
     /// Undoes what opening the inventory did to the running game. Only 1.5.12620 pauses and freezes there, so on

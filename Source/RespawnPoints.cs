@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 // Safe respawn points per scene, normalized to the map rect.
 // Generated offline (see `tools/extract_respawns.sh`).

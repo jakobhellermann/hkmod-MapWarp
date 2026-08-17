@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using MapWarp.Source.Toasts;
+using MapWarp.Toasts;
 using UnityEngine;
-using MapWarp.Source.Compat;
+using MapWarp.Compat;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class MapTeleport {
     internal static void Install() {

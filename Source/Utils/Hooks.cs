@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using MonoMod.RuntimeDetour;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class Hooks {
     private const BindingFlags Any = BindingFlags.Instance | BindingFlags.Static |

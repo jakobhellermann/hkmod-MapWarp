@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-using MapWarp.Source.Compat;
+using MapWarp.Compat;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class MapReveal {
     private static bool Enabled => MapWarpPlugin.Settings.UnlockEntireMap;

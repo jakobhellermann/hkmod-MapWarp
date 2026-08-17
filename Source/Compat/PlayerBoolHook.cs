@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Modding;
 
-namespace MapWarp.Source.Compat;
+namespace MapWarp.Compat;
 
 /// v42 passes the hook only the field name and treats a result differing from PlayerData's own value as an override.
 internal static class PlayerBoolHook {

@@ -3,7 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 #endif
 
-namespace MapWarp.Source.Compat;
+namespace MapWarp.Compat;
 
 /// MonoMod 21.x reads the OS and word size from Environment, which stay correct under translation, but adds
 /// Platform.ARM from `uname -m`, spawned as a child process and therefore reporting the host's arm64. It then picks

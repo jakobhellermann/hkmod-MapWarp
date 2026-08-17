@@ -1,7 +1,7 @@
 using System;
-using MapWarp.Source.Compat;
+using MapWarp.Compat;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class CompassAlways {
     private static bool positioningCompass;

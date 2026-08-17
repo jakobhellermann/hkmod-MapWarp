@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using Modding;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 [PublicAPI]
 internal static class Logging {

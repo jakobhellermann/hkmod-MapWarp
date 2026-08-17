@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class MapRoomBorders {
     private const float LabelWidth = 220f;

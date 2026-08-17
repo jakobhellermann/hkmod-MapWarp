@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Modding;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 // The v42 API of 1.2.2.1 has neither settings persistence nor a mod menu, so there the settings keep their defaults.
 public partial class MapWarpPlugin : IGlobalSettings<Settings>, IMenuMod {

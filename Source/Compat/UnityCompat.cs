@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace MapWarp.Source.Compat;
+namespace MapWarp.Compat;
 
 internal static class UnityCompat {
     internal static T[] FindAll<T>(bool includeInactive = false) where T : Object =>

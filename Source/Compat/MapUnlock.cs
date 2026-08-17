@@ -1,6 +1,6 @@
 using System;
 
-namespace MapWarp.Source.Compat;
+namespace MapWarp.Compat;
 
 /// 1.2.2.1's GameMap reads the PlayerData fields directly rather than through GetBool, so the read hook cannot
 /// reach it. Writing them for the duration of a call is the only way; permanently would alter the save.

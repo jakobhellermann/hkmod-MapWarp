@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MapWarp.Source.Toasts;
+namespace MapWarp.Toasts;
 
 // Minimal on-screen toast overlay, vendored from DevUtils (trimmed to the plain-text path MapWarp uses) so the
 // mod carries no hard dependency on DevUtils. Replace with the HollowKnight modding API's notifications once one

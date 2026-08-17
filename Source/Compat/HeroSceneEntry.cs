@@ -1,6 +1,6 @@
 using System;
 
-namespace MapWarp.Source.Compat;
+namespace MapWarp.Compat;
 
 internal static class HeroSceneEntry {
     /// Runs once the hero's entry position is settled and before the entry sequence finishes. 1.2.2.1 has no

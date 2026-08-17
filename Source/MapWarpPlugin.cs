@@ -1,12 +1,12 @@
 using System.Reflection;
 using JetBrains.Annotations;
-using MapWarp.Source.Toasts;
+using MapWarp.Toasts;
 using Modding;
 using Object = UnityEngine.Object;
 
-using MapWarp.Source.Compat;
+using MapWarp.Compat;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 [UsedImplicitly]
 public partial class MapWarpPlugin : ModBase, ITogglableMod {

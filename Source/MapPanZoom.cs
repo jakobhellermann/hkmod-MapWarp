@@ -2,10 +2,10 @@ using System;
 using UnityEngine;
 
 #if !HK1512620
-using MapWarp.Source.Compat;
+using MapWarp.Compat;
 #endif
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class MapPanZoom {
     private const float ZoomSpeed = 0.15f;

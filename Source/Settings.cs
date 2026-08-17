@@ -1,4 +1,4 @@
-namespace MapWarp.Source;
+namespace MapWarp;
 
 // Global mod settings
 public class Settings {

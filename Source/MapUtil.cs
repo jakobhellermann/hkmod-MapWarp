@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using MapWarp.Source.Compat;
+using MapWarp.Compat;
 
-namespace MapWarp.Source;
+namespace MapWarp;
 
 internal static class MapUtil {
     // Consistent scale on high resolution screens
