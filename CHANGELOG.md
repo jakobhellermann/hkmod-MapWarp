@@ -1,20 +1,5 @@
 # Changelog
 
-## 1.2.1
-- Fix respawn point marker lagging behind by a frame
-
-## 1.2.0
-- Fix pin placement by pan/zooming map, not camera
-- Don't clamp quest markers to the screen edge when zoomed in
-
-## 1.1.0
-- Fix broken map when performing teleport in `m`-initiated map view
-
-## 1.0.2
-- Tag as `utility` on thunderstore
-
-## 1.0.1
-- Fix thunderstore images / repo
-
-## 1.0.0
-- Initial release
+## 1.3.0
+- Adapt silksong `MapWarp` to hollowknight
+- Add support for `1.2.2.1`, `1.3.1.5`, `1.4.3.2`, `1.5.78`, `1.5.12620`
