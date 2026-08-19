@@ -31,20 +31,12 @@ and can also be edited in the Mod Menu.
 > [!WARNING]
 > Configuration is currently not support on the 1.2.2.1 build. The default options apply there.
 
-**Teleport**
-
 - **Enable teleport** *(default on)*: right-click a room on the map to warp to the nearest safe spot (hold
   Shift for the exact spot).
 - **Show respawn points** *(default on)*: when hovering a room on the map, show safe spawn points.
-
-**Map**
-
 - **Unlock entire map** *(default on)*: show the whole map even if you haven't purchased it
 - **Show full map in quickmap** *(default off)*: show the entire map instead of just the current area in the
   quickmap.
 - **Always show compass** *(default off)*: always show your position on the map, as if the Compass tool were
   equipped.
-
-**Debug**
-
 - **Show Room Borders** *(default off)*: outline each room on the map and label it with its scene name.
