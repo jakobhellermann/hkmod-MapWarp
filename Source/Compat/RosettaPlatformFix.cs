@@ -13,6 +13,7 @@ internal static class RosettaPlatformFix {
     /// Must run before anything reads PlatformHelper.Current: the first read latches it and the setter then throws.
     internal static void Apply() {
 #if !HK1512620
+        if (UnityEngine.Application.platform != UnityEngine.RuntimePlatform.OSXPlayer) return;
         if (!IsTranslated()) return;
 
         try {
