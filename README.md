@@ -5,6 +5,8 @@
 Right-click anywhere on the map to warp there, with pan/zoom mouse controls. Plus options to reveal
 the full map, always show compass and outline rooms.
 
+Download in the [releases tab](https://github.com/jakobhellermann/hkmod-MapWarp/releases/latest).
+
 <p align="center"><img src="https://raw.githubusercontent.com/jakobhellermann/hkmod-MapWarp/main/docs/demo.png" alt="MapWarp demo" width="640"></p>
 
 > [!TIP]
