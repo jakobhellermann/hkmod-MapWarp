@@ -10,7 +10,7 @@
     -->
 
     <PropertyGroup>
-        <GameLibsPackageVersion Condition="'$(GameLibsPackageVersion)' == ''">1.0.0</GameLibsPackageVersion>
+        <GameLibsPackageVersion Condition="'$(GameLibsPackageVersion)' == ''">1.0.1</GameLibsPackageVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'hk1221'">
